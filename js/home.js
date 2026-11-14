@@ -235,6 +235,8 @@
     if (!crew) return;
     wireButtons();
     render();
+    // Live NASA DONKI check (falls back to the saved copy offline), then redraw
+    CHM.refreshSpaceWeather().then(render);
   });
 
 })(window.CHM);
