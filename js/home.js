@@ -225,6 +225,13 @@
       render();
     });
 
+    // Demo: start today again for this crew member (tests, actions, results)
+    $("btn-demo-reset").addEventListener("click", () => {
+      CHM.resetDay(crew.id, day);
+      render();
+      $("demo-reset-status").textContent = "Day " + day + " reset for " + crew.role + ".";
+    });
+
     // Another tab or page changed shared data (e.g. tests done): refresh
     window.addEventListener("storage", render);
   }

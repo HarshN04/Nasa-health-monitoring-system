@@ -86,6 +86,20 @@ window.CHM = window.CHM || {};
     return done.includes(actionId);
   };
 
+  // ----- Demo/testing: start one crew member's day again -----
+  // Clears tests done, actions ticked, today's test results (Tests page)
+  // and the "vitals report sent" flag. Symptoms, notes and the queue stay.
+  CHM.TEST_RESULT_KINDS = ["checkins", "sleep", "bp", "mass", "reaction"];   // saveResult() kinds in tests.js
+  CHM.resetDay = function (crewId, day) {
+    store.remove(testsKey(crewId, day));
+    store.remove(actionsKey(crewId, day));
+    store.remove("vitalsReport:" + crewId + ":" + day);
+    CHM.TEST_RESULT_KINDS.forEach((kind) => {
+      const key = kind + ":" + crewId;
+      store.set(key, store.get(key, []).filter((r) => r.day !== day));
+    });
+  };
+
   // ----- Space weather (DONKI). Shared by the whole crew. -----
   // { active: true, type: "SEP", message: "...", since: "ISO date" } or null
   CHM.getSpaceWeather = function () { return store.get("spaceWeather", null); };
