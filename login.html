@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
+<title>Crew Health Login</title>
+<!--
+  Crew Health Monitor — Screen 1: Login (matches the team wireframe, screen 1)
+  Logo · "Crew Health Monitor" · "Who is checking in?" · 4 crew buttons · PIN · Check in · offline note.
+  Security (Part 5 doc §5): PIN checked against a salted hash, wrong-try counter, 30 s delay after 5, lock after 10,
+  signed lock state, "Forgot PIN?" reset with the commander and the sealed recovery code.
+  Look: css/space.css (deep-space theme from Sehun's history.css) + js/space-bg.js. Logic: js/login.js.
+-->
+<link rel="stylesheet" href="css/space.css">
+<style>
+  .login { max-width: 460px; padding: 32px 28px 24px; text-align: center; }
+  .login h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
+
+  /* Crew picker: 2×2 grid, red left edge on the chosen one (same rule as the side menu) */
+  .crew { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .crew button {
+    padding: 14px 8px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: rgba(4, 6, 13, .5);
+    color: var(--muted);
+    font-weight: 600; font-size: 15px;
+    cursor: pointer;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .crew button:hover { color: var(--text); border-color: var(--muted); }
+  .crew button[aria-pressed="true"] {
+    background: var(--panel-2);
+    color: var(--text);
+    border-color: var(--blue);
+    box-shadow: inset 3px 0 0 var(--red);
+  }
+
+  .login .pin-input { text-align: left; margin-bottom: 12px; }
+  .foot { font-size: 13px; color: var(--faint); margin: 14px 0 0; }
+  .demo-note { font-size: 12px; color: var(--faint); margin: 18px 0 0; border-top: 1px dashed var(--line); padding-top: 12px; }
+  .demo-note:empty { display: none; }
+  .left { text-align: left; }
+  .field { margin-bottom: 12px; }
+  .login .field .pin-input { margin-bottom: 0; }
+  .steps { text-align: left; margin: 0 0 16px; padding-left: 20px; color: var(--muted); font-size: 14px; }
+  #rc { letter-spacing: .06em; text-transform: uppercase; font-family: var(--mono); }
+  @media (max-width: 420px) { .login { padding: 26px 18px 20px; } }
+
+  /* ---------- Emergency without PIN ---------- */
+  .or { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; color: var(--faint); font-size: 13px; }
+  .or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line-soft); }
+  .btn-emergency.block { width: 100%; justify-content: center; font-size: 16px; }
+  .emerg { border-color: var(--red); box-shadow: 0 0 0 1px var(--red-soft), 0 20px 60px rgba(0, 0, 0, .45); }
+  .emerg h1 { color: #ffd9d3; }
+  .emerg .crew button[aria-pressed="true"] { border-color: var(--red); box-shadow: inset 3px 0 0 var(--red); }
+  .emerg .crew .wide { grid-column: 1 / -1; }
+  .q-label { text-align: left; font-size: 14px; font-weight: 600; color: var(--muted); margin: 0 0 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .chips button {
+    padding: 8px 12px; border-radius: 999px;
+    border: 1px solid var(--line); background: rgba(4, 6, 13, .5);
+    color: var(--muted); font-size: 14px; cursor: pointer;
+  }
+  .chips button:hover { color: var(--text); border-color: var(--muted); }
+  .chips button[aria-pressed="true"] { color: var(--text); border-color: var(--red); background: var(--red-soft); }
+  .sent-mark {
+    width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 28px; font-weight: 700;
+    color: #fff; background: var(--red); box-shadow: 0 0 0 8px var(--red-soft);
+  }
+  .next { text-align: left; font-size: 14px; color: var(--muted); margin: 0 0 16px; padding-left: 20px; }
+  .next li + li { margin-top: 6px; }
+</style>
+</head>
+<body class="centered">
+
+<!-- Check in (wireframe screen 1) -->
+<form class="card login" id="form" autocomplete="off" aria-labelledby="title" hidden>
+  <div class="logo-dot" aria-hidden="true">
+    <svg viewBox="0 0 32 32" width="30" height="30"><circle cx="16" cy="16" r="6" fill="currentColor"/><ellipse cx="16" cy="16" rx="14" ry="5.5" fill="none" stroke="currentColor" stroke-width="1.6" transform="rotate(-25 16 16)"/></svg>
+  </div>
+  <p class="eyebrow">Crew Health</p>
+  <h1 id="title">Crew Health Monitor</h1>
+  <p class="sub">Who is checking in?</p>
+
+  <div class="crew" role="group" aria-label="Crew member" id="crew"></div>
+
+  <label class="label left" for="pin">PIN</label>
+  <input id="pin" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="4 digits" autocomplete="off">
+
+  <button class="btn dark block" type="submit" id="go">Check in</button>
+  <p class="msg" id="msg" role="status" aria-live="polite"></p>
+  <button class="link" type="button" id="forgot" hidden>Forgot PIN?</button>
+
+  <p class="or">Someone can't check in?</p>
+  <button class="btn-emergency block" type="button" id="emerg-open">Emergency · no PIN needed</button>
+
+  <p class="foot">Works offline · data stays on board until you share it</p>
+
+  <p class="demo-note" id="demo-note"></p>
+</form>
+
+<!-- Emergency without a PIN: any crew member can raise it for someone who is incapacitated -->
+<form class="card login emerg" id="emerg" autocomplete="off" aria-labelledby="emerg-title" hidden>
+  <p class="eyebrow" style="color:var(--red)">No PIN needed</p>
+  <h1 id="emerg-title">Emergency</h1>
+  <p class="sub">For when a crew member cannot check in themselves. It goes to Earth first, ahead of everything else.</p>
+
+  <p class="q-label" id="emerg-who-label">Who needs help?</p>
+  <div class="crew" role="group" aria-labelledby="emerg-who-label" id="emerg-who"></div>
+
+  <p class="q-label" id="emerg-why-label">What is happening? <span class="faint" style="font-weight:400">(optional)</span></p>
+  <div class="chips" role="group" aria-labelledby="emerg-why-label" id="emerg-why"></div>
+
+  <button class="btn-emergency block" type="submit" id="emerg-send">Send emergency</button>
+  <p class="msg" id="emerg-msg" role="status" aria-live="assertive"></p>
+  <button class="btn block" type="button" id="emerg-cancel" style="margin-top:8px">Cancel</button>
+</form>
+
+<!-- Emergency sent -->
+<section class="card login emerg" id="emerg-done" aria-labelledby="done-title" hidden tabindex="-1">
+  <div class="sent-mark" aria-hidden="true">!</div>
+  <h1 id="done-title">Emergency sent</h1>
+  <p class="sub" id="done-what"></p>
+  <ol class="next">
+    <li><strong>Start first aid now.</strong> Do not wait for Earth.</li>
+    <li id="done-next"></li>
+    <li>When the person can, they check in and the flight surgeon follows up on Comms.</li>
+  </ol>
+  <button class="btn dark block" type="button" id="emerg-back">Back to check-in</button>
+</section>
+
+<!-- Forgot PIN: reset on board with the commander and the sealed recovery code -->
+<form class="card login" id="reset" autocomplete="off" aria-labelledby="reset-title" hidden>
+  <h1 id="reset-title">Reset PIN · <span id="reset-who"></span></h1>
+  <p class="sub">Done on board. It does not wait for Earth.</p>
+  <ol class="steps" id="reset-steps"></ol>
+
+  <div class="field left" id="cdr-field">
+    <label class="label" for="cdr-pin">Commander's PIN</label>
+    <input id="cdr-pin" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+  </div>
+  <div class="field left">
+    <label class="label" for="rc">Recovery code (from the sealed envelope)</label>
+    <input id="rc" type="text" autocomplete="off" spellcheck="false" placeholder="XXXXX-XXXXX-XXXXX-XXXXX">
+  </div>
+  <div class="field left">
+    <label class="label" for="np">New 4-digit PIN</label>
+    <input id="np" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+  </div>
+  <div class="field left">
+    <label class="label" for="np2">Repeat new PIN</label>
+    <input id="np2" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+  </div>
+  <button class="btn dark block" type="submit" id="reset-go">Set new PIN</button>
+  <p class="msg" id="reset-msg" role="status" aria-live="polite"></p>
+  <button class="btn block" type="button" id="reset-cancel" style="margin-top:8px">Cancel</button>
+</form>
+
+<script src="js/space-bg.js" defer></script>
+<script src="js/data.js"></script>
+<script src="js/session.js"></script>
+<script src="js/secure.js"></script>
+<script src="js/emergency.js"></script>
+<script src="js/login.js"></script>
+</body>
+</html>

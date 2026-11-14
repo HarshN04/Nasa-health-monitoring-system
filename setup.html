@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="dark">
+<title>Tablet Setup</title>
+<!--
+  Crew Health Monitor — first-run tablet setup (not in the wireframe; done once by the commander before the mission).
+  Sets each crew member's PIN (stored only as a salted hash), makes a recovery code for each that is shown ONCE,
+  and creates the ground key used to seal items for Earth (Comms page).
+  Logic: js/setup.js · crypto: js/secure.js · theme: css/space.css
+-->
+<link rel="stylesheet" href="css/space.css">
+<style>
+  .setup { max-width: 580px; padding: 30px 28px 26px; }
+  .setup h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 6px; }
+  .head-row { text-align: center; margin-bottom: 6px; }
+
+  .pins { display: grid; grid-template-columns: auto 1fr 1fr; gap: 10px 12px; align-items: center; margin-bottom: 4px; }
+  .pins .who { font-weight: 600; font-size: 14px; white-space: nowrap; }
+  .pins .head { font-size: 12px; color: var(--faint); font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+  .pins input.bad { border-color: var(--red); }
+  @media (max-width: 480px) {
+    .pins { grid-template-columns: 1fr 1fr; }
+    .pins .who { grid-column: 1 / -1; margin-top: 6px; }
+    .pins .head.who-h { display: none; }
+  }
+
+  .codes { width: 100%; border-collapse: collapse; margin: 4px 0 14px; }
+  .codes td { padding: 12px 6px; border-bottom: 1px solid var(--line-soft); }
+  .codes td:first-child { color: var(--muted); font-weight: 600; white-space: nowrap; }
+  .codes td.code { font: 600 17px/1.2 var(--mono); letter-spacing: .04em; color: var(--text); text-align: right; overflow-wrap: anywhere; }
+
+  .row-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 14px; }
+  .busy { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media print {
+    body { background: #fff; color: #000; display: block; padding: 0; }
+    body::before, .space-bg { display: none; }
+    .card { background: none; border: 0; box-shadow: none; backdrop-filter: none; }
+    .codes td, .codes td.code, .codes td:first-child { color: #000; border-color: #999; }
+    .banner { color: #000; border-color: #000; background: none; }
+    .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body class="centered">
+<section class="card setup" aria-labelledby="title">
+  <div class="head-row">
+    <div class="logo-dot" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="30" height="30"><circle cx="16" cy="16" r="6" fill="currentColor"/><ellipse cx="16" cy="16" rx="14" ry="5.5" fill="none" stroke="currentColor" stroke-width="1.6" transform="rotate(-25 16 16)"/></svg>
+    </div>
+    <p class="eyebrow">Crew Health · first run</p>
+    <h1 id="title">Set up this tablet</h1>
+  </div>
+
+  <div id="unsupported" class="banner danger" hidden>
+    This browser cannot run the security features. Open the app over <strong>https://</strong> or <strong>http://localhost</strong> in a current browser.
+  </div>
+
+  <!-- Already set up -->
+  <div id="v-done" hidden>
+    <p class="sub" style="text-align:center">This tablet is already set up<span id="done-when"></span>.</p>
+    <a class="btn dark block" href="login.html">Go to check-in</a>
+    <p class="note no-print" style="text-align:center">Demo: <button class="link" type="button" id="reset-all" style="padding:0;font-size:13px">erase setup and start again</button></p>
+  </div>
+
+  <!-- Step 1: PINs -->
+  <form id="v-pins" hidden autocomplete="off" novalidate>
+    <p class="sub" style="text-align:center">Done once by the commander before the mission. Each crew member types their own 4-digit PIN. Easy PINs like 1234, 0000 or a year are refused.</p>
+    <div class="pins" id="pins">
+      <span class="head who-h"></span><span class="head">PIN</span><span class="head">Repeat</span>
+    </div>
+    <p class="msg" id="pin-msg" role="status" aria-live="polite"></p>
+    <button class="btn dark block" type="submit" id="create">Create keys and recovery codes</button>
+    <p class="note">Takes a few seconds: each PIN and recovery code is stretched 600,000 times so it is slow to guess.</p>
+    <p class="note no-print">Demo: <button class="link" type="button" id="demo-pins" style="padding:0;font-size:13px">fill demo PINs</button></p>
+  </form>
+
+  <!-- Step 2: recovery codes (shown once) -->
+  <div id="v-codes" hidden>
+    <div class="banner warn"><strong>Shown only once.</strong> Write each code down or print this page, put each in a sealed envelope, and give them to the commander. A code is needed to reset a forgotten PIN. If a PIN and its code are both lost, that person's data on this tablet cannot be opened again.</div>
+    <table class="codes" aria-label="Recovery codes"><tbody id="codes"></tbody></table>
+    <div class="row-actions no-print">
+      <button class="btn small" type="button" id="print">Print codes</button>
+    </div>
+    <label class="check no-print"><input type="checkbox" id="sealed"> Each code is written down and sealed with the commander.</label>
+    <button class="btn dark block no-print" type="button" id="finish" disabled style="margin-top:14px">Finish setup</button>
+  </div>
+</section>
+
+<script src="js/space-bg.js" defer></script>
+<script src="js/data.js"></script>
+<script src="js/session.js"></script>
+<script src="js/secure.js"></script>
+<script src="js/setup.js"></script>
+</body>
+</html>
