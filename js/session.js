@@ -87,8 +87,11 @@ window.CHM = window.CHM || {};
   };
 
   // ----- Demo/testing: start one crew member's day again -----
-  // Clears tests done, actions ticked, today's test results (Tests page)
-  // and the "vitals report sent" flag. Symptoms, notes and the queue stay.
+  // Undoes everything this crew member did today on every page:
+  //   tests done + results (Tests), actions ticked (Home/Vitals), vitals report sent,
+  //   symptom reports (Symptoms), notes (History), shelter check-in,
+  //   and their messages in the Comms queue, emergencies included.
+  // Kept: the login, other crew members, the space weather event, the activity log.
   CHM.TEST_RESULT_KINDS = ["checkins", "sleep", "bp", "mass", "reaction"];   // saveResult() kinds in tests.js
   CHM.resetDay = function (crewId, day) {
     store.remove(testsKey(crewId, day));
@@ -98,7 +101,19 @@ window.CHM = window.CHM || {};
       const key = kind + ":" + crewId;
       store.set(key, store.get(key, []).filter((r) => r.day !== day));
     });
+
+    const notToday = (r) => !(r.crewId === crewId && r.day === day);
+    store.set("symptoms", store.get("symptoms", []).filter(notToday));
+    store.set("notes", store.get("notes", []).filter(notToday));
+    store.set("shelterAcks", CHM.getShelterAcks().filter((id) => id !== crewId));
+
+    // The mission day never changes, so everything in the queue is from today.
+    // Also drops no-PIN emergencies raised about this crew member at check-in.
+    store.set("queue", CHM.getQueue().filter((q) => queueOwner(q) !== crewId && q.about !== crewId));
   };
+
+  // Who a queue item belongs to (Comms reads "crew"; older items may only have "crewId")
+  function queueOwner(q) { return q.crew !== undefined ? q.crew : q.crewId; }
 
   // ----- Space weather (DONKI). Shared by the whole crew. -----
   // { active: true, type: "SEP", message: "...", since: "ISO date" } or null
@@ -119,7 +134,9 @@ window.CHM = window.CHM || {};
   CHM.getQueue = function () { return store.get("queue", []); };
   CHM.addToQueue = function (item) {
     const q = CHM.getQueue();
-    q.push(Object.assign({ id: Date.now(), created: new Date().toISOString(), status: "waiting" }, item));
+    // Tag the sender so Comms, History and resetDay know whose item it is
+    const crew = item.crew !== undefined ? item.crew : (item.crewId || CHM.getCurrentCrewId());
+    q.push(Object.assign({ id: Date.now(), created: new Date().toISOString(), status: "waiting", crew: crew }, item));
     // urgent first
     q.sort((a, b) => (b.urgent === true) - (a.urgent === true));
     store.set("queue", q);
