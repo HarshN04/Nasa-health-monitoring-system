@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 1. Change the title -->
+  <title>Page name · Crew Health</title>
+  <link rel="stylesheet" href="global.css">
+  <!-- 2. Optional: add a stylesheet for this page only, e.g. vitals.css -->
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="shell">
+    <aside class="sidebar" aria-label="App">
+      <a class="brand" href="#" aria-label="Crew Health home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="28" height="28"><circle cx="16" cy="16" r="6" fill="currentColor"/><ellipse cx="16" cy="16" rx="14" ry="5.5" fill="none" stroke="currentColor" stroke-width="1.6" transform="rotate(-25 16 16)"/></svg>
+        </span>
+        <span class="brand-text">Crew Health</span>
+      </a>
+      <!-- 3. Move aria-current="page" to this page's menu item -->
+      <nav class="app-nav" aria-label="Main">
+        <ul>
+          <li><a href="#" aria-current="page">Home</a></li>
+          <li><a href="#">Vitals</a></li>
+          <li><a href="#">Tests</a></li>
+          <li><a href="#">Symptoms</a></li>
+          <li><a href="history.html">History</a></li>
+          <li><a href="#">Comms</a></li>
+        </ul>
+      </nav>
+      <div class="crew-card">
+        <span class="crew-role">Commander</span>
+        <span class="crew-day">Mission day <strong>142</strong></span>
+      </div>
+    </aside>
+
+    <main id="main" class="main" tabindex="-1">
+      <!-- Page header -->
+      <header class="hero">
+        <p class="eyebrow">Section label <span class="sample-tag">Sample data</span></p>
+        <h1>Page title</h1>
+        <p class="intro">One or two sentences saying what this page is for and what the astronaut can do here.</p>
+
+        <dl class="mission-strip">
+          <div><dt>Mission day</dt><dd>142</dd></div>
+          <div><dt>Crew</dt><dd>Commander</dd></div>
+          <div><dt>Earth link</dt><dd><span class="dot dot-off" aria-hidden="true"></span>Offline · next window 14:20</dd></div>
+        </dl>
+
+        <nav class="toc" aria-label="On this page">
+          <span class="toc-label">On this page</span>
+          <a href="#section-1">First section</a>
+          <a href="#section-2">Second section</a>
+        </nav>
+      </header>
+
+      <!-- Content: panels are glass cards over the galaxy -->
+      <div style="display:grid; gap:20px; margin-top:20px;">
+        <section id="section-1" class="panel" aria-labelledby="section-1-title">
+          <div class="panel-head">
+            <h2 id="section-1-title">First section</h2>
+            <div class="segmented" role="group" aria-label="Time range">
+              <button type="button" aria-pressed="true">7 days</button>
+              <button type="button" aria-pressed="false">30 days</button>
+              <button type="button" aria-pressed="false">Mission</button>
+            </div>
+          </div>
+          <p>Building blocks from global.css you can reuse:</p>
+          <p style="display:flex; flex-wrap:wrap; gap:8px;">
+            <span class="badge badge-act">Act now</span>
+            <span class="badge badge-watch">Watch</span>
+            <span class="badge badge-done">OK</span>
+            <span class="badge badge-info">From Earth</span>
+            <span class="badge">Neutral</span>
+          </p>
+          <p style="display:flex; flex-wrap:wrap; gap:8px;">
+            <button type="button" class="chip" aria-pressed="true">All</button>
+            <button type="button" class="chip" aria-pressed="false">Filter</button>
+            <button type="button" class="btn-emergency">Emergency</button>
+          </p>
+        </section>
+
+        <section id="section-2" class="panel" aria-labelledby="section-2-title">
+          <h2 id="section-2-title">Second section</h2>
+          <label class="field-label" for="example">Example field <span class="optional">optional</span></label>
+          <input id="example" class="input" type="text" placeholder="Type here">
+          <p class="help">Helper text sits under a field.</p>
+          <p style="margin-top:16px;"><button type="button" class="btn-primary">Primary action</button></p>
+        </section>
+      </div>
+
+      <footer class="page-foot">
+        <p>Works fully offline.</p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Animated galaxy background -->
+  <script src="space-bg.js"></script>
+  <script>
+    // On phones the menu scrolls sideways: show the current page's item.
+    (function () {
+      var nav = document.querySelector(".app-nav");
+      var cur = nav && nav.querySelector('[aria-current="page"]');
+      if (nav && cur && nav.scrollWidth > nav.clientWidth) {
+        nav.scrollLeft = cur.offsetLeft - (nav.clientWidth - cur.offsetWidth) / 2;
+      }
+    })();
+  </script>
+</body>
+</html>
