@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Report a symptom · Crew Health</title>
+  <meta name="description" content="Report a symptom in three steps and get clear next steps. Never diagnoses, never suggests medication.">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/symptoms.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="shell">
+    <aside class="sidebar" aria-label="App">
+      <a class="brand" href="home.html" aria-label="Crew Health home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="28" height="28"><circle cx="16" cy="16" r="6" fill="currentColor"/><ellipse cx="16" cy="16" rx="14" ry="5.5" fill="none" stroke="currentColor" stroke-width="1.6" transform="rotate(-25 16 16)"/></svg>
+        </span>
+        <span class="brand-text">Crew Health</span>
+      </a>
+      <nav class="app-nav" aria-label="Main">
+        <ul>
+          <li><a href="home.html">Home</a></li>
+          <li><a href="vitals.html">Vitals</a></li>
+          <li><a href="tests.html">Tests</a></li>
+          <li><a href="symptoms.html" aria-current="page">Symptoms</a></li>
+          <li><a href="history.html">History</a></li>
+          <li><a href="comms.html">Comms</a></li>
+        </ul>
+      </nav>
+      <div class="crew-card">
+        <span class="crew-role" id="crew-role">Commander</span>
+        <span class="crew-day">Mission day <strong id="mission-day">142</strong></span>
+      </div>
+    </aside>
+
+    <main id="main" class="main" tabindex="-1">
+      <!-- Page header -->
+      <header class="hero">
+        <div class="hero-top">
+          <div>
+            <p class="eyebrow">Health report</p>
+            <h1>Report a symptom</h1>
+          </div>
+          <button type="button" class="btn-emergency" id="emergency-btn">Emergency</button>
+        </div>
+        <p class="intro">Tell us what you notice in three short steps. You get clear next steps straight away.
+          This never diagnoses and never suggests medication.</p>
+
+        <dl class="mission-strip">
+          <div><dt>Mission day</dt><dd id="strip-day">142</dd></div>
+          <div><dt>Crew</dt><dd id="strip-crew">Commander</dd></div>
+          <div><dt>Earth link</dt><dd><span class="dot dot-off" aria-hidden="true"></span>Offline · signal delay <span id="strip-delay">12</span> min</dd></div>
+        </dl>
+      </header>
+
+      <div class="layout">
+        <!-- The 3-step report -->
+        <section class="panel report" aria-labelledby="report-title">
+          <h2 id="report-title" class="sr-only">Report a symptom</h2>
+
+          <ol class="steps" aria-label="Steps">
+            <li class="step" data-step="1" aria-current="step"><span class="step-num">1</span>Symptom</li>
+            <li class="step" data-step="2"><span class="step-num">2</span>How bad, how long</li>
+            <li class="step" data-step="3"><span class="step-num">3</span>What to do</li>
+          </ol>
+
+          <!-- Step 1: what -->
+          <div class="step-body" id="step-1">
+            <h3 class="step-title">What are you noticing?</h3>
+            <div class="symptom-grid" id="symptom-grid" role="group" aria-label="Symptoms"></div>
+            <div id="other-wrap" class="other-wrap" hidden>
+              <label class="field-label" for="other-text">Describe it</label>
+              <input id="other-text" class="input" type="text" maxlength="60" placeholder="e.g. Sore eyes">
+            </div>
+            <p class="field-error" id="step-1-error" role="alert"></p>
+          </div>
+
+          <!-- Step 2: how bad, how long -->
+          <div class="step-body" id="step-2" hidden>
+            <h3 class="step-title">How bad is it?</h3>
+            <div class="scale" id="severity-scale" role="radiogroup" aria-label="Severity, 1 to 5"></div>
+            <p class="help" id="severity-help">1 = barely noticeable · 5 = can't do my work</p>
+
+            <h3 class="step-title">How long has it lasted?</h3>
+            <div class="segmented segmented-wide" id="duration-group" role="group" aria-label="How long"></div>
+
+            <h3 class="step-title">Is it getting worse?</h3>
+            <div class="segmented" id="worse-group" role="group" aria-label="Getting worse">
+              <button type="button" data-worse="no" aria-pressed="true">No</button>
+              <button type="button" data-worse="yes" aria-pressed="false">Yes</button>
+            </div>
+            <p class="field-error" id="step-2-error" role="alert"></p>
+          </div>
+
+          <!-- Step 3: what to do -->
+          <div class="step-body" id="step-3" hidden>
+            <div class="action-card" id="action-card">
+              <div class="action-head">
+                <span class="badge" id="action-badge">OK</span>
+                <h3 id="action-title">What to do</h3>
+              </div>
+              <p class="action-summary" id="action-summary"></p>
+              <ol class="action-steps" id="action-steps"></ol>
+            </div>
+
+            <!-- Headache: check cabin CO2 first (wireframe note) -->
+            <div class="cabin-check" id="cabin-check" hidden>
+              <div>
+                <p class="cabin-label">Cabin CO₂ checked first <span class="sample-tag">Simulated · EDA data plugs in</span></p>
+                <p class="cabin-value" id="cabin-value"></p>
+              </div>
+              <span class="badge" id="cabin-badge">OK</span>
+            </div>
+
+            <fieldset class="share">
+              <legend class="field-label">Who sees this report</legend>
+              <div class="segmented segmented-wide">
+                <input type="radio" id="share-surgeon" name="share" value="surgeon" checked>
+                <label for="share-surgeon">Flight surgeon</label>
+                <input type="radio" id="share-me" name="share" value="me">
+                <label for="share-me">Only me</label>
+              </div>
+              <p class="help" id="share-help">Goes in the Comms queue and is sent at the next Earth link.</p>
+            </fieldset>
+          </div>
+
+          <!-- Done -->
+          <div class="step-body" id="step-done" hidden>
+            <div class="saved">
+              <span class="badge badge-done">Saved</span>
+              <h3>Report saved</h3>
+              <p id="saved-text"></p>
+              <p class="saved-links"><a href="history.html">See it in History</a> · <a href="comms.html">Open Comms queue</a></p>
+            </div>
+          </div>
+
+          <div class="step-actions">
+            <button type="button" class="btn-ghost" id="back-btn" hidden>Back</button>
+            <button type="button" class="btn-primary" id="next-btn">Next</button>
+          </div>
+        </section>
+
+        <!-- Recent reports -->
+        <section class="panel" aria-labelledby="recent-title">
+          <div class="panel-head">
+            <h2 id="recent-title">Your recent reports</h2>
+          </div>
+          <ul class="recent-list" id="recent-list"></ul>
+          <p class="help">Mark a symptom as resolved when it's gone. Open symptoms show as Watch on Home.</p>
+        </section>
+      </div>
+
+      <footer class="page-foot">
+        <p>This app supports your flight surgeon; it does not replace them. In an emergency, follow your crew emergency procedures.</p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Emergency pop-up -->
+  <dialog id="emergency-dialog" aria-labelledby="emergency-title">
+    <h2 id="emergency-title">Emergency</h2>
+    <ol class="action-steps">
+      <li>Stop what you are doing and tell a crewmate now.</li>
+      <li>Alert the crew medical officer.</li>
+      <li>Contact the flight surgeon on the emergency channel. Signal delay is about <span id="em-delay">12</span> minutes each way, so don't wait for a reply before acting.</li>
+      <li>Follow your crew emergency procedures.</li>
+    </ol>
+    <p class="help">"Send urgent alert" puts an urgent message at the top of the Comms queue.</p>
+    <div class="dialog-actions">
+      <button type="button" class="btn-ghost" id="em-cancel">Cancel</button>
+      <button type="button" class="btn-emergency" id="em-send">Send urgent alert</button>
+    </div>
+    <p class="save-status" id="em-status" role="status" aria-live="polite"></p>
+  </dialog>
+
+  <!-- Load order: data.js → session.js → scoring.js → page script -->
+  <script src="space-bg.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/session.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/symptoms.js"></script>
+</body>
+</html>
