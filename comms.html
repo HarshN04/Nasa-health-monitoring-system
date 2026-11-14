@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Comms to Earth</title>
+<!--
+  Crew Health Monitor — Screen 7: Comms to Earth (matches the team wireframe, screen 7)
+  Three tiles (Earth link · Signal delay · Waiting to send), outgoing queue with Hold / Send per item,
+  "Behavioral notes are held on board by default."
+  Under the hood (Part 5 doc §3, §6): urgent first, re-check after every 4 KB chunk, only send inside a window,
+  merge repeated alerts, "Delivered" only once Earth's receipt is back. Every item is encrypted on the tablet
+  and sealed for Earth when it is queued. The link is SIMULATED (demo box at the bottom).
+-->
+<link rel="stylesheet" href="app.css">
+<style>
+  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+  @media (max-width: 600px) { .tiles { grid-template-columns: minmax(0, 1fr); } }
+  .tile { background: var(--surface-2); border-radius: 10px; padding: 14px; }
+  .tile h2 { font-size: 13px; font-weight: 700; margin: 0 0 6px; }
+  .tile .val { font-size: 15px; }
+  .tile .val2 { font-size: 13px; color: var(--text-2); }
+  .tile.closed { box-shadow: inset 3px 0 0 var(--warn); }
+  .tile.black { box-shadow: inset 3px 0 0 var(--danger); }
+  .tile.open { box-shadow: inset 3px 0 0 var(--ok); }
+
+  .notice { border-radius: 10px; padding: 12px 14px; font-size: 14px; margin-bottom: 16px; background: var(--warn-tint); border: 1px solid var(--warn); }
+
+  h2.section { font-size: 16px; margin: 0 0 10px; }
+  .queue { list-style: none; margin: 0; padding: 0; }
+  .q-item {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; background: var(--surface);
+  }
+  .q-item.urgent { border: 2px solid var(--danger); }
+  .q-item.held { background: var(--surface-2); }
+  .q-title { font-weight: 700; font-size: 15px; overflow-wrap: anywhere; }
+  .q-title .count { color: var(--danger); font-size: 12px; margin-left: 6px; }
+  .q-to { font-size: 13px; color: var(--text-2); }
+  .q-when { font-size: 12px; color: var(--text-2); margin-top: 3px; }
+  .q-right { display: flex; align-items: center; gap: 8px; flex: none; }
+  .state { font-size: 13px; font-weight: 600; color: var(--text-2); white-space: nowrap; }
+  .state.sending, .state.transit { color: var(--accent); }
+  .state.delivered, .state.ack { color: var(--ok); }
+  .state.urgent { color: var(--danger); }
+  .bar { height: 3px; border-radius: 3px; background: var(--surface-2); margin-top: 6px; overflow: hidden; max-width: 220px; }
+  .bar i { display: block; height: 100%; background: var(--accent); }
+  .note { font-size: 13px; color: var(--text-2); margin: 14px 0 0; }
+  .empty { color: var(--text-2); font-size: 14px; padding: 8px 0; }
+  .demo pre {
+    background: var(--surface-2); border-radius: 8px; padding: 10px; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    white-space: pre-wrap; overflow-wrap: anywhere; max-height: 260px; overflow: auto; margin: 8px 0 0;
+  }
+  @media (max-width: 520px) { .q-item { flex-direction: column; align-items: stretch; } .q-right { justify-content: space-between; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="side"></aside>
+  <main class="content">
+    <div class="page">
+      <div class="page-head">
+        <h1>Comms to Earth</h1>
+        <button class="btn-emergency" type="button" id="emergency">Emergency</button>
+      </div>
+
+      <div id="notices"></div>
+
+      <section class="tiles" aria-label="Link status" aria-live="polite">
+        <div class="tile" id="t-link"><h2>Earth link</h2><div class="val" id="link-1"></div><div class="val2" id="link-2"></div></div>
+        <div class="tile"><h2>Signal delay</h2><div class="val" id="delay"></div></div>
+        <div class="tile"><h2>Waiting to send</h2><div class="val" id="waiting"></div></div>
+      </section>
+
+      <section aria-labelledby="q-title">
+        <h2 class="section" id="q-title">Outgoing queue</h2>
+        <ul class="queue" id="queue"></ul>
+        <p class="note">Behavioral notes are held on board by default.</p>
+      </section>
+
+      <!-- Demo controls (not part of the real UI) -->
+      <section class="demo" aria-labelledby="demo-title">
+        <h2 id="demo-title">Demo controls · simulated link</h2>
+        <div class="row">
+          <label class="muted" for="preset">Link</label>
+          <select id="preset"></select>
+          <label class="muted" for="speed">Speed</label>
+          <select id="speed">
+            <option value="1">Real time</option>
+            <option value="60">1 min per second</option>
+            <option value="600">10 min per second</option>
+            <option value="3600">1 hour per second</option>
+          </select>
+          <button class="btn small" type="button" id="jump">Jump to next window</button>
+        </div>
+        <div class="row">
+          <span class="muted">Add:</span>
+          <button class="btn small" type="button" data-add="alert">Alert: resting HR high</button>
+          <button class="btn small" type="button" data-add="symptom">Symptom report</button>
+          <button class="btn small" type="button" data-add="mood">Mood check-in</button>
+          <button class="btn small" type="button" data-add="raw">Raw sensor day</button>
+        </div>
+        <div class="row">
+          <span class="muted">Security:</span>
+          <button class="btn small" type="button" id="show-stored">What is stored on the tablet</button>
+          <button class="btn small" type="button" id="open-earth">Open my newest sent item as Earth</button>
+          <button class="btn small" type="button" id="check-log">Check the activity log</button>
+        </div>
+        <p class="muted" style="margin:0" id="demo-msg" role="status" aria-live="polite">Rate 1,000 bytes/s in 4 KB chunks, windows of 30 min at 02:20 and 14:20 (assumptions from the Part 5 doc).</p>
+        <pre id="demo-out" hidden></pre>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script src="secure.js"></script>
+<script src="app.js"></script>
+<script src="comms.js"></script>
+</body>
+</html>

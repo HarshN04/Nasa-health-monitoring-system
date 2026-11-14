@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Tablet Setup</title>
+<!--
+  Crew Health Monitor — first-run tablet setup (not in the wireframe; done once by the commander before the mission).
+  Sets each crew member's PIN (stored only as a hash), creates their random data key and a recovery code
+  that is shown ONCE, and creates the ground key used to seal items for Earth.
+-->
+<link rel="stylesheet" href="app.css">
+<style>
+  body { display: grid; place-items: center; padding: 24px 16px; }
+  .setup { max-width: 560px; padding: 28px; box-shadow: var(--shadow); }
+  .setup h1 { font-size: 22px; margin: 0 0 4px; }
+  .pins { display: grid; grid-template-columns: auto 1fr 1fr; gap: 10px 12px; align-items: center; margin-bottom: 8px; }
+  .pins .who { font-weight: 650; font-size: 14px; white-space: nowrap; }
+  .pins input { letter-spacing: .3em; }
+  .pins .head { font-size: 12px; color: var(--text-2); font-weight: 600; }
+  @media (max-width: 480px) { .pins { grid-template-columns: 1fr 1fr; } .pins .who { grid-column: 1 / -1; } .pins .head.who-h { display: none; } }
+  .codes { width: 100%; border-collapse: collapse; margin: 8px 0 14px; }
+  .codes td { padding: 10px 6px; border-bottom: 1px solid var(--border); }
+  .codes td.code { font: 600 17px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .04em; }
+  .row-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; margin-top: 8px; }
+  .check input { width: 20px; height: 20px; margin-top: 1px; flex: none; }
+  .note { font-size: 13px; color: var(--text-2); }
+  .banner { border-radius: 10px; padding: 12px 14px; font-size: 14px; margin-bottom: 16px; }
+  .banner.warn { background: var(--warn-tint); border: 1px solid var(--warn); }
+  .banner.danger { background: var(--danger-tint); border: 1px solid var(--danger); }
+  @media print {
+    body { background: #fff; color: #000; display: block; padding: 0; }
+    .setup { box-shadow: none; border: 0; }
+    .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<section class="card setup" aria-labelledby="title">
+  <h1 id="title">Set up this tablet</h1>
+
+  <div id="unsupported" class="banner danger" hidden>
+    This browser cannot run the security features. Open the app over <strong>https://</strong> or <strong>http://localhost</strong> in a current browser.
+  </div>
+
+  <!-- Already set up -->
+  <div id="v-done" hidden>
+    <p class="sub">This tablet is already set up.</p>
+    <a class="btn dark block" href="login.html" style="display:block;text-align:center;text-decoration:none">Go to check-in</a>
+  </div>
+
+  <!-- Step 1: PINs -->
+  <form id="v-pins" hidden autocomplete="off">
+    <p class="sub">Done once by the commander before the mission. Each crew member types their own 4-digit PIN. Easy PINs like 1234, 0000 or a year are refused.</p>
+    <div class="pins" id="pins">
+      <span class="head who-h"></span><span class="head">PIN</span><span class="head">Repeat</span>
+    </div>
+    <p class="msg" id="pin-msg" role="status" aria-live="polite"></p>
+    <button class="btn dark block" type="submit" id="create">Create keys and recovery codes</button>
+    <p class="note">Takes a few seconds: each PIN and recovery code is stretched 600,000 times so it is slow to guess.</p>
+    <p class="note no-print">Demo: <button class="link" type="button" id="demo-pins" style="padding:0;font-size:13px">fill demo PINs</button></p>
+  </form>
+
+  <!-- Step 2: recovery codes (shown once) -->
+  <div id="v-codes" hidden>
+    <div class="banner warn"><strong>Shown only once.</strong> Write each code down or print this page, put each in a sealed envelope, and give them to the commander. A code is needed to reset a forgotten PIN. If a PIN and its code are both lost, that person's data on this tablet cannot be opened again.</div>
+    <table class="codes" aria-label="Recovery codes"><tbody id="codes"></tbody></table>
+    <div class="row-actions no-print">
+      <button class="btn" type="button" id="print">Print codes</button>
+    </div>
+    <label class="check no-print"><input type="checkbox" id="sealed"> Each code is written down and sealed with the commander.</label>
+    <button class="btn dark block no-print" type="button" id="finish" disabled style="margin-top:14px">Finish setup</button>
+  </div>
+</section>
+
+<script src="secure.js"></script>
+<script src="app.js"></script>
+<script src="setup.js"></script>
+</body>
+</html>

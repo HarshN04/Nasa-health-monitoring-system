@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Crew Health Login</title>
+<!--
+  Crew Health Monitor — Screen 1: Login (matches the team wireframe, screen 1)
+  Logo · "Crew Health Monitor" · "Who is checking in?" · 4 crew buttons · PIN · Check in · offline note.
+  Security (Part 5 doc §5): PIN checked against a salted hash, wrong-try counter, 30 s delay after 5, lock after 10,
+  signed lock state, "Forgot PIN?" reset with the commander and the sealed recovery code.
+-->
+<link rel="stylesheet" href="app.css">
+<style>
+  body { display: grid; place-items: center; padding: 24px 16px; }
+  .login { max-width: 460px; padding: 32px 28px 24px; text-align: center; box-shadow: var(--shadow); }
+  .login .logo-dot { width: 52px; height: 52px; margin: 0 auto 14px; font-size: 11px; }
+  .login h1 { font-size: 24px; margin: 0 0 2px; }
+  .login .sub { margin-bottom: 22px; }
+  .crew { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .crew button {
+    border: 1.5px solid var(--border); background: var(--surface); border-radius: 10px;
+    padding: 14px 8px; font-weight: 600; font-size: 15px;
+  }
+  .crew button[aria-pressed="true"] { background: var(--surface-2); border: 2px solid var(--text); }
+  .pin-input { text-align: left; letter-spacing: .35em; font-size: 18px; margin-bottom: 12px; }
+  .pin-input::placeholder { letter-spacing: normal; font-size: 15px; }
+  .foot { font-size: 13px; color: var(--text-2); margin: 14px 0 0; }
+  .demo-note { font-size: 12px; color: var(--text-2); margin-top: 18px; border-top: 1px dashed var(--border); padding-top: 12px; }
+  .left { text-align: left; }
+  .field { margin-bottom: 12px; }
+  .steps { text-align: left; margin: 0 0 16px; padding-left: 20px; color: var(--text-2); font-size: 14px; }
+  #rc { letter-spacing: .06em; text-transform: uppercase; }
+  .shake { animation: shake .35s; }
+  @keyframes shake { 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+  @media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
+</style>
+</head>
+<body>
+
+<!-- Check in (wireframe screen 1) -->
+<form class="card login" id="form" autocomplete="off" aria-labelledby="title" hidden>
+  <div class="logo-dot" aria-hidden="true">Logo</div>
+  <h1 id="title">Crew Health Monitor</h1>
+  <p class="sub">Who is checking in?</p>
+
+  <div class="crew" role="group" aria-label="Crew member" id="crew"></div>
+
+  <label class="label left" for="pin">PIN</label>
+  <input id="pin" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="4 digits" autocomplete="off">
+
+  <button class="btn dark block" type="submit" id="go">Check in</button>
+  <p class="msg" id="msg" role="status" aria-live="polite"></p>
+  <button class="link" type="button" id="forgot" hidden>Forgot PIN?</button>
+
+  <p class="foot">Works offline · data stays on board until you share it</p>
+
+  <p class="demo-note" id="demo-note"></p>
+</form>
+
+<!-- Forgot PIN: reset on board with the commander and the sealed recovery code -->
+<form class="card login" id="reset" autocomplete="off" aria-labelledby="reset-title" hidden>
+  <h1 id="reset-title">Reset PIN · <span id="reset-who"></span></h1>
+  <p class="sub">Done on board. It does not wait for Earth.</p>
+  <ol class="steps" id="reset-steps"></ol>
+
+  <div class="field left" id="cdr-field">
+    <label class="label" for="cdr-pin">Commander's PIN</label>
+    <input id="cdr-pin" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+  </div>
+  <div class="field left">
+    <label class="label" for="rc">Recovery code (from the sealed envelope)</label>
+    <input id="rc" type="text" autocomplete="off" spellcheck="false" placeholder="XXXXX-XXXXX-XXXXX-XXXXX">
+  </div>
+  <div class="field left">
+    <label class="label" for="np">New 4-digit PIN</label>
+    <input id="np" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+  </div>
+  <div class="field left">
+    <label class="label" for="np2">Repeat new PIN</label>
+    <input id="np2" class="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+  </div>
+  <button class="btn dark block" type="submit" id="reset-go">Set new PIN</button>
+  <p class="msg" id="reset-msg" role="status" aria-live="polite"></p>
+  <button class="btn block" type="button" id="reset-cancel" style="margin-top:8px">Cancel</button>
+</form>
+
+<script src="secure.js"></script>
+<script src="app.js"></script>
+<script src="login.js"></script>
+</body>
+</html>
