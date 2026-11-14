@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home · Crew Health Monitor</title>
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== Left menu (same on every page, move "active" to the current page) ===== -->
+  <nav class="sidebar" aria-label="Main menu">
+    <div class="logo">🛰 Crew Health</div>
+    <a class="nav-link active" href="home.html" aria-current="page">Home</a>
+    <a class="nav-link" href="vitals.html">Vitals</a>
+    <a class="nav-link" href="tests.html">Tests</a>
+    <a class="nav-link" href="symptoms.html">Symptoms</a>
+    <a class="nav-link" href="history.html">History</a>
+    <a class="nav-link" href="comms.html">Comms</a>
+    <div class="crew-info">
+      <span class="fw-bold" data-bind="crew-role">—</span><br>
+      Mission day <span data-bind="mission-day">—</span><br>
+      <button type="button" class="btn btn-ghost btn-sm switch-crew" id="btn-switch-crew">Switch crew member</button>
+    </div>
+  </nav>
+
+  <!-- ===== Main area ===== -->
+  <main class="main">
+
+    <header class="page-header">
+      <h1><span id="greeting">Hello</span>, <span data-bind="crew-role">—</span></h1>
+      <button type="button" class="btn btn-emergency" id="btn-emergency">Emergency</button>
+    </header>
+
+    <!-- Space weather alert (DONKI). Shown only while an event is active. -->
+    <div class="alert alert-danger mb-4" id="space-weather-alert" role="alert" hidden>
+      <span class="alert-icon" aria-hidden="true">☢</span>
+      <div class="alert-body">
+        <strong>Space weather alert:</strong>
+        <span id="space-weather-message">Solar particle event detected.</span>
+        <span class="tag-source tag-nasa">NASA DONKI</span>
+        <div class="shelter-status" id="shelter-status"></div>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" id="btn-shelter-ack">I'm in the shelter</button>
+    </div>
+
+    <!-- Overall status (filled by home.js) -->
+    <div class="status-bar mb-4" id="overall-status" aria-live="polite">Loading…</div>
+
+    <!-- Body-system tiles (filled by home.js) -->
+    <section class="grid grid-5 mb-4 tiles" id="system-tiles" aria-label="Body systems"></section>
+
+    <!-- Actions + today's tests -->
+    <section class="grid grid-2 mb-4">
+
+      <div class="card">
+        <div class="card-title">Suggested actions</div>
+        <ul class="action-list" id="action-list"></ul>
+        <p class="empty-note" id="actions-empty" hidden>Nothing to do. All your readings are within your normal.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Due today <small id="tests-progress"></small></div>
+        <ul class="due-list" id="due-list"></ul>
+        <p class="empty-note" id="tests-empty" hidden>All of today's tests are done.</p>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="btn-start-tests">Start tests</button>
+          <button type="button" class="btn btn-secondary" id="btn-report-symptom">Report symptom</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Cabin environment (filled by home.js) -->
+    <section class="cabin-strip" id="cabin-strip" aria-label="Cabin environment"></section>
+
+    <!-- Demo controls for the judges' walkthrough -->
+    <div class="demo-bar">
+      <span>Demo:</span>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-demo-alert">Simulate solar event</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-demo-clear" hidden>All-clear</button>
+    </div>
+
+  </main>
+</div>
+
+<!-- Emergency confirm dialog -->
+<dialog id="emergency-dialog" class="dialog">
+  <h2>Start emergency?</h2>
+  <p>This opens the urgent symptom flow and puts an urgent alert at the top of the queue to Earth.</p>
+  <div class="row dialog-actions">
+    <button type="button" class="btn btn-secondary" id="btn-emergency-cancel">Cancel</button>
+    <button type="button" class="btn btn-emergency" id="btn-emergency-confirm">Yes, emergency</button>
+  </div>
+</dialog>
+
+<!-- Tile template (copied by home.js for each body system) -->
+<template id="tile-template">
+  <a class="tile">
+    <div class="tile-head">
+      <span class="tile-name"></span>
+      <span class="pill"></span>
+    </div>
+    <div class="tile-reason"></div>
+  </a>
+</template>
+
+<!-- Shared scripts first, then this page's script -->
+<script src="js/data.js"></script>
+<script src="data/crew-labs.js"></script>
+<script src="data/space-weather-backup.js"></script>
+<script src="js/session.js"></script>
+<script src="js/spaceweather.js"></script>
+<script src="js/scoring.js"></script>
+<script src="js/labs.js"></script>
+<script src="js/home.js"></script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vitals · Crew Health Monitor</title>
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/vitals.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ===== Left menu (same on every page) ===== -->
+    <aside class="sidebar" aria-label="Main menu">
+      <div class="logo">Crew Health</div>
+      <nav class="stack nav-list">
+        <a class="nav-link" href="home.html">Home</a>
+        <a class="nav-link active" href="vitals.html" aria-current="page">Vitals</a>
+        <a class="nav-link" href="tests.html">Tests</a>
+        <a class="nav-link" href="symptoms.html">Symptoms</a>
+        <a class="nav-link" href="history.html">History</a>
+        <a class="nav-link" href="comms.html">Comms</a>
+      </nav>
+      <div class="crew-info">
+        <div class="fw-bold" id="crew-role">–</div>
+        <div id="mission-day">Mission day –</div>
+        <button type="button" class="btn btn-ghost btn-sm mt-2" id="logout-btn">Log out</button>
+      </div>
+    </aside>
+
+    <!-- ===== Main area ===== -->
+    <main class="main" id="main">
+
+      <header class="page-header">
+        <div>
+          <h1>Vitals vs your normal</h1>
+          <p class="text-muted mb-0" id="overall-line">Loading…</p>
+        </div>
+        <div class="range-switch" role="group" aria-label="Trend period">
+          <button type="button" class="range-btn" data-range="7">7 d</button>
+          <button type="button" class="range-btn" data-range="30">30 d</button>
+          <button type="button" class="range-btn" data-range="all">Mission</button>
+        </div>
+      </header>
+
+      <!-- Space weather (DONKI): only shown during a solar particle event -->
+      <div class="alert alert-danger mb-4" id="sw-banner" role="alert" hidden>
+        <span aria-hidden="true">☢</span>
+        <div><strong>Space weather alert:</strong> <span id="sw-text"></span></div>
+      </div>
+
+      <!-- ===== 1. Daily vitals ===== -->
+      <section class="card mb-4" aria-labelledby="vitals-title">
+        <div class="section-head">
+          <h2 class="card-title mb-0" id="vitals-title">Daily vitals <span class="tag-source tag-sim">Simulated</span></h2>
+          <label class="toggle">
+            <input type="checkbox" id="show-more">
+            Show body mass, mood &amp; reaction time
+          </label>
+        </div>
+
+        <div class="table-scroll">
+          <table class="vitals-table" id="vitals-table">
+            <thead>
+              <tr>
+                <th scope="col">Vital</th>
+                <th scope="col">Now</th>
+                <th scope="col">Your normal</th>
+                <th scope="col"><span id="trend-head">7-day trend</span></th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody id="vitals-body">
+              <!-- rows are added by js/vitals.js -->
+            </tbody>
+          </table>
+        </div>
+        <p class="text-muted mt-2 mb-0">Tap a row to see the full chart and what to do.</p>
+      </section>
+
+      <!-- ===== 2. Detail for one vital (opens when a row is clicked) ===== -->
+      <section class="card mb-4 detail" id="detail" hidden aria-live="polite" aria-labelledby="detail-title">
+        <div class="section-head">
+          <h2 class="card-title mb-0" id="detail-title">–</h2>
+          <button type="button" class="btn btn-secondary btn-sm" id="detail-close">Close</button>
+        </div>
+        <div id="detail-chart" class="detail-chart"></div>
+        <div class="legend">
+          <span><i class="sw sw-band"></i>Your normal</span>
+          <span><i class="sw sw-line"></i>Daily reading</span>
+          <span><i class="sw sw-bad"></i>Outside normal</span>
+        </div>
+        <dl class="stats" id="detail-stats"></dl>
+        <div class="panel mt-2" id="detail-action"></div>
+      </section>
+
+      <div class="grid grid-2 mb-4">
+        <!-- ===== 3. Radiation ===== -->
+        <section class="card" aria-labelledby="rad-title">
+          <div class="section-head">
+            <h2 class="card-title mb-0" id="rad-title">Radiation (mission total)</h2>
+            <span class="pill" id="rad-pill">–</span>
+          </div>
+          <div class="rad-figure"><span id="rad-dose">–</span> <span class="text-muted">of <span id="rad-limit">–</span> mSv</span></div>
+          <div class="progress" id="rad-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Dose as % of mission limit"><span style="width:0%"></span></div>
+          <p class="text-muted mt-2 mb-0" id="rad-rate">–</p>
+          <p class="text-muted mb-0" id="rad-sw"></p>
+        </section>
+
+        <!-- ===== 4. Cabin ===== -->
+        <section class="card" aria-labelledby="cabin-title">
+          <div class="section-head">
+            <h2 class="card-title mb-0" id="cabin-title">Cabin <span class="tag-source tag-sim">Simulated</span></h2>
+            <span class="pill" id="cabin-pill">–</span>
+          </div>
+          <div class="cabin-strip" id="cabin-strip"></div>
+          <p class="text-muted mt-2 mb-0">Shared by the whole crew.</p>
+        </section>
+      </div>
+
+      <!-- ===== 5. Blood tests (REAL NASA data) ===== -->
+      <section class="card mb-4" aria-labelledby="labs-title">
+        <div class="section-head">
+          <div>
+            <h2 class="card-title mb-0" id="labs-title">Blood tests <span class="tag-source tag-nasa">NASA data</span></h2>
+            <p class="text-muted mb-0" id="labs-when">–</p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="labs-flagged-only">
+            Only show flagged
+          </label>
+        </div>
+        <div class="table-scroll">
+          <table class="vitals-table labs-table">
+            <thead>
+              <tr>
+                <th scope="col">Test</th>
+                <th scope="col">Result</th>
+                <th scope="col">Compared with</th>
+                <th scope="col">Body system</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody id="labs-body"></tbody>
+          </table>
+        </div>
+        <p class="text-muted mt-2 mb-0">
+          Values from real astronauts (SpaceX Inspiration4, NASA Open Science Data Repository OSD-569 &amp; OSD-575),
+          placed on our mission timeline.
+        </p>
+      </section>
+
+      <!-- ===== 6. What should I do? ===== -->
+      <section class="card mb-4" aria-labelledby="actions-title">
+        <div class="section-head">
+          <h2 class="card-title mb-0" id="actions-title">What should I do?</h2>
+          <span class="text-muted" id="actions-count"></span>
+        </div>
+        <ul class="action-list" id="action-list"></ul>
+        <div class="row mt-4 report-row">
+          <button type="button" class="btn btn-primary" id="send-report">Send vitals report to flight surgeon</button>
+          <span class="text-muted" id="report-status" role="status"></span>
+        </div>
+      </section>
+
+      <!-- ===== 7. How this works ===== -->
+      <section class="panel">
+        <strong>How to read this page.</strong>
+        Shaded band = your normal (your first 14 mission days, ±2 SD).
+        <span class="pill pill-watch">Watch</span> = outside it 3+ days in a row.
+        <span class="pill pill-danger">Act now</span> = very far off today or past a safety limit.
+        Radiation only adds up, so it is shown as the mission total against the 600 mSv limit.
+        Blood tests use the lab's normal range, or your own pre-flight level when the lab gives none.
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Shared scripts: keep this order on every page -->
+  <script src="js/data.js"></script>
+  <script src="data/crew-labs.js"></script>
+  <script src="data/space-weather-backup.js"></script>
+  <script src="js/session.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/labs.js"></script>
+  <script src="js/spaceweather.js"></script>
+  <!-- This page -->
+  <script src="js/vitals.js"></script>
+</body>
+</html>

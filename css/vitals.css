@@ -1,0 +1,192 @@
+/* =========================================================
+   vitals.css — styles used only on the Vitals page.
+   Colours, spacing and fonts come from global.css (:root).
+   ========================================================= */
+
+.nav-list { gap: var(--space-1); }
+
+/* Header line under each card title */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+/* ---------- 7 d / 30 d / Mission switch ---------- */
+.range-switch {
+  display: inline-flex;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.range-btn {
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  padding: 6px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.range-btn + .range-btn { border-left: 1px solid var(--border); }
+.range-btn:hover { background: var(--primary-soft); }
+.range-btn[aria-pressed="true"] { background: var(--primary); color: var(--text-on-dark); }
+
+/* Small checkbox toggles ("Show more", "Only flagged") */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.toggle input { accent-color: var(--primary); width: 16px; height: 16px; }
+
+/* ---------- Vitals table ---------- */
+.table-scroll { overflow-x: auto; }
+
+.vitals-table tbody tr.vital-row { cursor: pointer; }
+.vitals-table tbody tr.vital-row td { transition: background var(--transition); }
+.vitals-table tbody tr.vital-row:hover td,
+.vitals-table tbody tr.vital-row:focus-visible td { background: var(--surface-muted); }
+.vitals-table tbody tr.vital-row:focus-visible { outline: none; }
+.vitals-table tbody tr.vital-row:focus-visible td:first-child { box-shadow: inset 3px 0 0 var(--primary); }
+.vitals-table tbody tr.is-selected td { background: var(--primary-soft); }
+
+/* coloured left edge = status, like the Home tiles */
+.vitals-table tbody tr.is-watch  td:first-child { box-shadow: inset 4px 0 0 var(--watch); }
+.vitals-table tbody tr.is-danger td:first-child { box-shadow: inset 4px 0 0 var(--danger); }
+
+.vital-name   { display: block; }
+.vital-reason { display: block; font-size: var(--fs-xs); font-weight: 400; color: var(--text-muted); }
+.vital-now    { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vital-now.is-watch  { color: var(--watch); }
+.vital-now.is-danger { color: var(--danger); }
+.vital-normal { color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.vital-delta  { display: block; font-size: var(--fs-xs); font-weight: 600; }
+.vital-delta.is-watch  { color: var(--watch); }
+.vital-delta.is-danger { color: var(--danger); }
+.vital-delta.is-ok     { color: var(--text-muted); }
+
+.group-row td {
+  background: transparent !important;
+  border: 0 !important;
+  padding: var(--space-3) var(--space-1) 0;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  box-shadow: none !important;
+}
+
+/* ---------- Sparkline & big chart (SVG) ---------- */
+.spark { display: block; width: 140px; height: 34px; }
+.chart-band   { fill: var(--ok-soft); }
+.chart-mean   { stroke: var(--ok); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.6; }
+.chart-line   { fill: none; stroke: var(--primary); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+.chart-dot    { fill: var(--primary); }
+.chart-dot.is-bad   { fill: var(--watch); }
+.chart-dot.is-today { stroke: var(--surface); stroke-width: 2; }
+.chart-limit  { stroke: var(--danger); stroke-width: 1; stroke-dasharray: 5 4; }
+.chart-axis   { fill: var(--text-muted); font-size: 11px; font-family: var(--font-body); }
+.chart-grid   { stroke: var(--border); stroke-width: 1; }
+.chart-baseline-zone { fill: var(--bg-alt); opacity: 0.6; }
+
+/* ---------- Detail panel ---------- */
+.detail { border-top: 4px solid var(--primary); }
+.detail.is-watch  { border-top-color: var(--watch); }
+.detail.is-danger { border-top-color: var(--danger); }
+.detail-chart svg { display: block; width: 100%; height: auto; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: var(--space-2) 0 var(--space-3);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+.legend span { display: inline-flex; align-items: center; gap: var(--space-1); }
+.sw { display: inline-block; width: 14px; height: 10px; border-radius: 2px; }
+.sw-band { background: var(--ok-soft); border: 1px solid var(--ok); }
+.sw-line { height: 3px; background: var(--primary); }
+.sw-bad  { width: 10px; border-radius: 50%; background: var(--watch); }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  margin: 0;
+}
+.stats div {
+  background: var(--surface-muted);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+.stats dt { font-size: var(--fs-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.stats dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* ---------- Radiation & cabin ---------- */
+.rad-figure { font-size: var(--fs-xl); font-weight: 700; color: var(--accent); margin-bottom: var(--space-2); }
+.rad-figure .text-muted { font-size: var(--fs-md); font-weight: 500; }
+
+.cabin-item { display: flex; flex-direction: column; }
+.cabin-item .label { font-size: var(--fs-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.cabin-item .value { font-weight: 700; font-variant-numeric: tabular-nums; }
+.cabin-item.is-watch  .value { color: var(--watch); }
+.cabin-item.is-danger .value { color: var(--danger); }
+
+/* ---------- Blood tests ---------- */
+.labs-table td { font-variant-numeric: tabular-nums; }
+.labs-table .lab-system { color: var(--text-muted); font-size: var(--fs-sm); }
+.labs-table .lab-note { display: block; font-size: var(--fs-xs); color: var(--text-muted); font-weight: 400; }
+.labs-empty td { text-align: center; color: var(--text-muted); }
+
+/* ---------- Actions ---------- */
+.action-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-muted);
+  border-left: 4px solid var(--watch);
+  border-radius: var(--radius-sm);
+}
+.action-item.is-danger { border-left-color: var(--danger); background: var(--danger-soft); }
+.action-item input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--ok); flex-shrink: 0; }
+.action-item label { margin: 0; font-weight: 500; cursor: pointer; }
+.action-item.is-done label { text-decoration: line-through; color: var(--text-muted); }
+.action-none { color: var(--text-muted); }
+
+.report-row { flex-wrap: wrap; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1024px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .spark { width: 96px; }
+  .vitals-table th:nth-child(3),
+  .vitals-table td:nth-child(3) { display: none; }   /* hide "Your normal" column on phones; it is in the detail panel */
+  .labs-table th:nth-child(4),
+  .labs-table td:nth-child(4) { display: none; }
+}
+
+/* ---------- Print: a clean report for the flight surgeon ---------- */
+@media print {
+  .sidebar, .range-switch, .toggle, .report-row, #detail-close { display: none !important; }
+  .app { display: block; }
+  .card { box-shadow: none; break-inside: avoid; }
+  body { background: #fff; }
+}
