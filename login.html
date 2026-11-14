@@ -67,6 +67,8 @@
   }
   .chips button:hover { color: var(--text); border-color: var(--muted); }
   .chips button[aria-pressed="true"] { color: var(--text); border-color: var(--red); background: var(--red-soft); }
+  .emerg-other { text-align: left; margin: -6px 0 18px; }
+  .emerg-other .q-label { display: block; }
   .sent-mark {
     width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%;
     display: grid; place-items: center; font-size: 28px; font-weight: 700;
@@ -115,6 +117,10 @@
 
   <p class="q-label" id="emerg-why-label">What is happening? <span class="faint" style="font-weight:400">(optional)</span></p>
   <div class="chips" role="group" aria-labelledby="emerg-why-label" id="emerg-why"></div>
+  <div class="emerg-other" id="emerg-other-wrap" hidden>
+    <label class="q-label" for="emerg-other">Describe what is happening</label>
+    <input id="emerg-other" type="text" maxlength="120" placeholder="e.g. Burn on the left hand">
+  </div>
 
   <button class="btn-emergency block" type="submit" id="emerg-send">Send emergency</button>
   <p class="msg" id="emerg-msg" role="status" aria-live="assertive"></p>

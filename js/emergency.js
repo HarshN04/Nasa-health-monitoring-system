@@ -27,7 +27,12 @@ window.CHM = window.CHM || {};
     "Other"
   ];
 
+  // about: "PLT", "CREW" (several / not sure who) or a list like ["PLT", "MS1"]
   function nameFor(about) {
+    if (Array.isArray(about)) {
+      var names = about.map(nameFor);
+      return names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+    }
     if (about === EVERYONE) return "Crew (several / not sure who)";
     var c = CHM.getCrew(about);
     return c ? c.role : "Crew member";
@@ -39,14 +44,15 @@ window.CHM = window.CHM || {};
     return clock && clock.sim ? clock.sim : Date.now();
   }
 
-  // opts: { about: "PLT" | "CREW", reason: "…" (optional) }
+  // opts: { about: "PLT" | "CREW" | ["PLT", "MS1", …], reason: "…" (optional) }
   // Resolves to the queued item.
   CHM.raiseEmergency = function (opts) {
     var S = CHM.secure;
+    var several = Array.isArray(opts.about);
     var who = nameFor(opts.about);
     var reason = opts.reason || "";
-    var title = "EMERGENCY · " + who + " needs help" + (reason ? " — " + reason : "");
-    var mergeKey = "emergency:" + opts.about;
+    var title = "EMERGENCY · " + who + (several ? " need help" : " needs help") + (reason ? " — " + reason : "");
+    var mergeKey = "emergency:" + (several ? opts.about.slice().sort().join("+") : opts.about);
     var queue = CHM.store.get("queue", []);
 
     // Pressed again for the same person while still waiting: merge, don't duplicate.

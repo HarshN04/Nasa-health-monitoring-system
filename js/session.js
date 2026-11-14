@@ -110,7 +110,7 @@ window.CHM = window.CHM || {};
 
     // The mission day never changes, so everything in the queue is from today.
     // Also drops no-PIN emergencies raised about this crew member at check-in.
-    store.set("queue", CHM.getQueue().filter((q) => queueOwner(q) !== crewId && q.about !== crewId));
+    store.set("queue", CHM.getQueue().filter((q) => queueOwner(q) !== crewId && ![].concat(q.about).includes(crewId)));
   };
 
   // Who a queue item belongs to (Comms reads "crew"; older items may only have "crewId")

@@ -229,6 +229,9 @@
   var emerg = $("emerg"), emergDone = $("emerg-done");
   var emergWho = $("emerg-who"), emergWhy = $("emerg-why"), emergMsg = $("emerg-msg"), emergSend = $("emerg-send");
   var emergAbout = null, emergReason = "";
+  // "Several" is a toggle: while it is on, crew buttons can be ticked together.
+  // 2+ ticked → those people; fewer → "not sure who" (CREW).
+  var several = false, severalBtn = null, picked = [];
 
   function pressOne(box, btn) {
     var all = box.querySelectorAll("button");
@@ -246,23 +249,58 @@
     return b;
   }
 
+  function setSeveral(on) {
+    several = on;
+    picked = [];
+    pressOne(emergWho, on ? severalBtn : null);
+    emergAbout = on ? "CREW" : null;
+    say(emergMsg, on ? "Tap everyone who needs help, or send as is if you are not sure who." : "");
+  }
+
   CHM.CREW.forEach(function (c) {
-    pickButton(emergWho, c.role, function () { emergAbout = c.id; say(emergMsg, ""); });
+    var b = pickButton(emergWho, c.role, function () {
+      say(emergMsg, "");
+      if (!several) { emergAbout = c.id; return; }
+      // Several mode: undo pressOne() and toggle this person instead
+      severalBtn.setAttribute("aria-pressed", "true");
+      var i = picked.indexOf(c.id);
+      if (i < 0) picked.push(c.id); else picked.splice(i, 1);
+      emergWho.querySelectorAll("button").forEach(function (x) {
+        if (x !== severalBtn) x.setAttribute("aria-pressed", String(picked.indexOf(x.dataset.crew) >= 0));
+      });
+      emergAbout = picked.length >= 2 ? picked.slice() : "CREW";
+    });
+    b.dataset.crew = c.id;
   });
-  pickButton(emergWho, "Several / not sure who", function () { emergAbout = "CREW"; say(emergMsg, ""); }, "wide");
+  severalBtn = pickButton(emergWho, "Several / not sure who", function () { setSeveral(!several); }, "wide");
+
+  // "Other" opens a text box to say what is happening
+  var otherWrap = $("emerg-other-wrap"), otherText = $("emerg-other");
+  function showOther(on) {
+    otherWrap.hidden = !on;
+    if (!on) otherText.value = "";
+  }
 
   CHM.EMERGENCY_REASONS.forEach(function (r) {
     var b = pickButton(emergWhy, r, function () {
       // Tapping the chosen reason again clears it (it is optional).
       if (emergReason === r) { emergReason = ""; b.setAttribute("aria-pressed", "false"); }
       else emergReason = r;
+      showOther(emergReason === "Other");
+      if (emergReason === "Other") otherText.focus();
     });
   });
 
+  // Reason sent to Earth: "Other: <what they typed>" when there is text
+  function reasonToSend() {
+    var typed = otherText.value.trim();
+    return emergReason === "Other" && typed ? "Other: " + typed : emergReason;
+  }
+
   function showEmergency() {
-    emergAbout = null;
+    setSeveral(false);
     emergReason = "";
-    pressOne(emergWho, null);
+    showOther(false);
     pressOne(emergWhy, null);
     say(emergMsg, "");
     emergSend.disabled = false;
@@ -292,9 +330,12 @@
     emergSend.disabled = true;
     emergSend.textContent = "Sending…";
 
-    CHM.raiseEmergency({ about: emergAbout, reason: emergReason }).then(function (item) {
-      var who = emergAbout === "CREW" ? "the crew" : CHM.getCrew(emergAbout).role;
-      $("done-what").textContent = "Emergency for " + who + (emergReason ? " (" + emergReason.toLowerCase() + ")" : "") +
+    var reason = reasonToSend();
+    CHM.raiseEmergency({ about: emergAbout, reason: reason }).then(function (item) {
+      var who = emergAbout === "CREW" ? "the crew"
+        : Array.isArray(emergAbout) ? emergAbout.map(function (id) { return CHM.getCrew(id).role; }).join(", ")
+        : CHM.getCrew(emergAbout).role;
+      $("done-what").textContent = "Emergency for " + who + (reason ? " (" + reason.toLowerCase() + ")" : "") +
         (item.count > 1 ? ". Already in the queue; marked as raised " + item.count + " times." : " is at the front of the queue to Earth.");
       $("done-next").textContent = CHM.emergencyNextStep();
       emerg.hidden = true;
