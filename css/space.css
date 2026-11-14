@@ -1,0 +1,266 @@
+/* =========================================================
+   Crew Health Monitor — space.css
+   Shared deep-space theme for Login, Setup and Comms.
+   Palette and star field taken from Sehun's history.css so every
+   page looks the same. Pair with js/space-bg.js for the galaxy.
+   Change colours in :root only.
+   ========================================================= */
+
+/* ---------- 1. Tokens ---------- */
+:root {
+  --bg: #04060d;
+  --navy: #0a1230;
+  --panel: #0d1734;
+  --panel-2: #121f45;
+  --line: #22325e;
+  --line-soft: #1a2850;
+  --text: #eef2fa;
+  --muted: #a8b4cc;
+  --faint: #7c8bae;
+  --red: #fc3d21;
+  --red-soft: rgba(252, 61, 33, 0.14);
+  --amber: #f5b942;
+  --amber-soft: rgba(245, 185, 66, 0.14);
+  --green: #5fd3a1;
+  --green-soft: rgba(95, 211, 161, 0.13);
+  --blue: #8ab8ff;
+  --blue-soft: rgba(138, 184, 255, 0.13);
+  --focus: #ffffff;
+  --glass: rgba(10, 18, 42, .78);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+
+/* ---------- 2. Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Star field: no-JS fallback behind the animated galaxy (space-bg.js) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(255,255,255,.55), transparent 60%),
+    radial-gradient(1px 1px at 28% 72%, rgba(255,255,255,.35), transparent 60%),
+    radial-gradient(1.4px 1.4px at 44% 34%, rgba(255,255,255,.5), transparent 60%),
+    radial-gradient(1px 1px at 61% 82%, rgba(255,255,255,.3), transparent 60%),
+    radial-gradient(1px 1px at 73% 12%, rgba(255,255,255,.45), transparent 60%),
+    radial-gradient(1.2px 1.2px at 86% 56%, rgba(255,255,255,.4), transparent 60%),
+    radial-gradient(1px 1px at 93% 88%, rgba(255,255,255,.3), transparent 60%),
+    radial-gradient(1px 1px at 6% 92%, rgba(255,255,255,.3), transparent 60%),
+    radial-gradient(1200px 600px at 85% -10%, rgba(40, 70, 160, .28), transparent 70%),
+    radial-gradient(900px 500px at -10% 110%, rgba(30, 50, 120, .25), transparent 70%);
+  background-size: 420px 420px, 380px 380px, 520px 520px, 460px 460px, 340px 340px, 500px 500px, 440px 440px, 360px 360px, 100% 100%, 100% 100%;
+}
+.space-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; display: block; }
+
+a { color: var(--blue); }
+h1, h2, h3 { line-height: 1.2; margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+
+.muted { color: var(--muted); }
+.faint { color: var(--faint); }
+.mono  { font-family: var(--mono); }
+.sr-only {
+  position: absolute !important; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; margin: -1px; padding: 0; border: 0;
+}
+
+/* ---------- 3. Centered card pages (Login, Setup) ---------- */
+body.centered { display: grid; place-items: center; padding: 24px 16px; }
+
+.card {
+  width: 100%;
+  background: var(--glass);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .45);
+}
+
+.logo-dot {
+  width: 56px; height: 56px; margin: 0 auto 14px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  color: var(--text);
+  background: radial-gradient(circle at 35% 30%, var(--panel-2), var(--bg));
+  border: 1px solid var(--line);
+}
+.eyebrow {
+  margin: 0 0 6px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.sub { margin: 0 0 22px; color: var(--muted); }
+
+/* ---------- 4. Forms ---------- */
+.label { display: block; font-size: 14px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+input[type="text"], input[type="password"], select {
+  width: 100%;
+  padding: 11px 12px;
+  background: rgba(4, 6, 13, .6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  transition: border-color .15s, box-shadow .15s;
+}
+select { width: auto; padding: 7px 10px; }
+input::placeholder { color: var(--faint); }
+input:focus, select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
+input:disabled { opacity: .5; }
+.pin-input { letter-spacing: .35em; font-size: 18px; font-family: var(--mono); }
+.pin-input::placeholder { letter-spacing: normal; font-size: 15px; font-family: var(--font); }
+
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.check input { width: 20px; height: 20px; margin-top: 1px; flex: none; accent-color: var(--blue); }
+
+.msg { min-height: 1.4em; margin: 10px 0 0; font-size: 14px; color: var(--amber); }
+.msg.ok { color: var(--green); }
+.note { font-size: 13px; color: var(--faint); margin: 12px 0 0; }
+
+/* ---------- 5. Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 10px 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.dark { background: var(--text); color: var(--bg); border-color: var(--text); }
+.btn.dark:hover { background: #ffffff; }
+.btn.block { width: 100%; }
+.btn.small { min-height: 34px; padding: 6px 12px; font-size: 14px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-emergency {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; padding: 10px 18px;
+  border: 1px solid var(--red);
+  border-radius: 10px;
+  background: var(--red-soft);
+  color: #ffd9d3;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn-emergency:hover { background: var(--red); color: #fff; }
+.link {
+  border: 0; background: none; padding: 4px;
+  color: var(--blue); font-size: 14px; text-decoration: underline; cursor: pointer;
+}
+
+/* ---------- 6. Banners ---------- */
+.banner { border-radius: 10px; padding: 12px 14px; font-size: 14px; margin-bottom: 16px; border: 1px solid; }
+.banner.warn   { background: var(--amber-soft); border-color: var(--amber); color: #ffe7b8; }
+.banner.danger { background: var(--red-soft);   border-color: var(--red);   color: #ffd9d3; }
+.banner.info   { background: var(--blue-soft);  border-color: var(--blue);  color: #d9e7ff; }
+.banner a { color: inherit; }
+
+/* ---------- 7. App shell: side menu + main (same as History) ---------- */
+.shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 100vh; }
+.sidebar {
+  position: sticky; top: 0;
+  height: 100vh;
+  display: flex; flex-direction: column; gap: 28px;
+  padding: 24px 16px;
+  background: rgba(6, 10, 26, .82);
+  border-right: 1px solid var(--line-soft);
+  backdrop-filter: blur(6px);
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text); text-decoration: none;
+  font-weight: 700; letter-spacing: .01em; padding: 0 8px;
+}
+.brand-mark { color: var(--text); display: inline-flex; }
+.app-nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.app-nav a {
+  display: block; padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--muted); text-decoration: none; font-weight: 500;
+  border-left: 2px solid transparent;
+}
+.app-nav a:hover { color: var(--text); background: var(--panel); }
+.app-nav a[aria-current="page"] { color: var(--text); background: var(--panel-2); border-left-color: var(--red); }
+.crew-card {
+  margin-top: auto; display: grid; gap: 2px; padding: 12px;
+  border: 1px solid var(--line-soft); border-radius: var(--radius-sm); font-size: 14px;
+}
+.crew-role { font-weight: 600; }
+.crew-day { color: var(--muted); font-family: var(--mono); font-size: 13px; }
+.crew-day strong { color: var(--text); font-weight: 600; }
+.crew-card .link { justify-self: start; padding: 4px 0 0; font-size: 13px; }
+
+.main { padding: 32px clamp(16px, 3vw, 40px) 48px; max-width: 1100px; width: 100%; }
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.page-head h1 { font-size: clamp(26px, 3.4vw, 36px); font-weight: 700; letter-spacing: -0.01em; }
+
+.panel {
+  background: rgba(10, 18, 42, .74);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: 22px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.panel + .panel { margin-top: 20px; }
+.panel h2 { font-size: 19px; font-weight: 650; margin-bottom: 14px; }
+
+.pill {
+  display: inline-block; padding: 2px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; letter-spacing: .02em; white-space: nowrap;
+  border: 1px solid var(--line); color: var(--muted);
+}
+.pill.ok     { color: var(--green); border-color: var(--green); background: var(--green-soft); }
+.pill.watch  { color: var(--amber); border-color: var(--amber); background: var(--amber-soft); }
+.pill.danger { color: var(--red);   border-color: var(--red);   background: var(--red-soft); }
+.pill.info   { color: var(--blue);  border-color: var(--blue);  background: var(--blue-soft); }
+
+/* ---------- 8. Motion & small screens ---------- */
+.shake { animation: shake .35s; }
+@keyframes shake { 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .shake { animation: none; }
+  *, *::before, *::after { transition: none !important; }
+}
+
+@media (max-width: 760px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .sidebar {
+    position: static; height: auto; flex-direction: row; align-items: center;
+    gap: 12px; padding: 12px; overflow-x: auto;
+    border-right: 0; border-bottom: 1px solid var(--line-soft);
+  }
+  .app-nav ul { display: flex; }
+  .app-nav a { white-space: nowrap; border-left: 0; border-bottom: 2px solid transparent; }
+  .app-nav a[aria-current="page"] { border-bottom-color: var(--red); }
+  .brand-text, .crew-card { display: none; }
+  .main { padding: 20px 16px 40px; }
+}
