@@ -35,16 +35,9 @@
   }
 
   // ---------- Who is checked in ----------
-  // Standalone for now: open the page directly, no login page needed.
-  // Uses ?crew=PLT in the address or the saved check-in, otherwise the Commander.
-  // When the pages are linked, swap these lines for:  const crew = CHM.requireLogin(); if (!crew) return;
-  const DEFAULT_CREW = "CDR";
-  let crewId = CHM.getCurrentCrewId();
-  if (!crewId) {
-    crewId = DEFAULT_CREW;
-    CHM.store.set("currentCrew", crewId);
-  }
-  const crew = CHM.getCrew(crewId);
+  // Uses ?crew=PLT in the address or the saved check-in, otherwise goes to login.html.
+  const crew = CHM.requireLogin();
+  if (!crew) return;
 
   const day = CHM.MISSION.currentDay;
   const readings = CHM.getReadings(crew.id);

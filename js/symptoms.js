@@ -64,14 +64,9 @@
     { id: "days",  label: "Several days" },
   ];
 
-  // ---------- Who is checked in (standalone for now, no login page) ----------
-  // When the pages are linked, swap these lines for:  const crew = CHM.requireLogin(); if (!crew) return;
-  let crewId = CHM.getCurrentCrewId();
-  if (!crewId) {
-    crewId = "CDR";
-    CHM.store.set("currentCrew", crewId);
-  }
-  const crew = CHM.getCrew(crewId);
+  // ---------- Who is checked in ----------
+  const crew = CHM.requireLogin();   // goes to login.html if nobody is checked in
+  if (!crew) return;
   const day = CHM.MISSION.currentDay;
 
   document.getElementById("crew-role").textContent = crew.role;
@@ -432,6 +427,9 @@
   const emDialog = document.getElementById("emergency-dialog");
   document.getElementById("emergency-btn").addEventListener("click", () => {
     document.getElementById("em-status").textContent = "";
+    document.getElementById("em-send").disabled = false;
+    document.getElementById("em-send").textContent = "Send urgent alert";
+    document.getElementById("em-cancel").textContent = "Cancel";
     emDialog.showModal();
   });
   document.getElementById("em-cancel").addEventListener("click", () => emDialog.close());
@@ -448,6 +446,20 @@
   // ---------- Start ----------
   showStep(1);
   renderRecent();
+
+  // Home's Emergency button already queued the urgent alert, then sent us here
+  // with ?emergency=1: show the emergency steps without sending a second alert.
+  const params = new URLSearchParams(location.search);
+  if (params.get("emergency") === "1") {
+    const send = document.getElementById("em-send");
+    send.disabled = true;
+    send.textContent = "Alert sent";
+    document.getElementById("em-cancel").textContent = "Close";
+    document.getElementById("em-status").textContent = "Urgent alert is at the top of the Comms queue. Tell a crewmate now, then describe what's wrong below.";
+    emDialog.showModal();
+    params.delete("emergency");
+    history.replaceState(null, "", location.pathname + (params.toString() ? "?" + params : ""));
+  }
 
   // On phones the menu scrolls sideways: show the current page's item (from template.html)
   const nav = document.querySelector(".app-nav");

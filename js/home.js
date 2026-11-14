@@ -166,7 +166,7 @@
     const cabin = CHM.scoreCabin(CHM.getCabin());
     const score = CHM.scoreCrewMember(crew.id, {
       spaceWeather: CHM.getSpaceWeather(),
-      symptoms: CHM.SAMPLE_SYMPTOMS,
+      symptoms: CHM.store.get("symptoms", []).concat(CHM.SAMPLE_SYMPTOMS),   // saved by the Symptoms page
     });
     renderHeader();
     renderSpaceWeather();

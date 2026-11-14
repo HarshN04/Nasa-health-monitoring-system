@@ -6,7 +6,7 @@
   <title>History &amp; Notes · Crew Health</title>
   <meta name="description" content="Mission archive of alerts, symptoms, tests, messages and personal notes for one crew member.">
   <link rel="stylesheet" href="css/global.css">
-  <link rel="stylesheet" href="history.css">
+  <link rel="stylesheet" href="css/history.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -14,7 +14,7 @@
   <div class="shell">
     <!-- Side menu: matches the wireframe's left menu on every screen -->
     <aside class="sidebar" aria-label="App">
-      <a class="brand" href="#" aria-label="Crew Health home">
+      <a class="brand" href="home.html" aria-label="Crew Health home">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 32 32" width="28" height="28"><circle cx="16" cy="16" r="6" fill="currentColor"/><ellipse cx="16" cy="16" rx="14" ry="5.5" fill="none" stroke="currentColor" stroke-width="1.6" transform="rotate(-25 16 16)"/></svg>
         </span>
@@ -22,30 +22,30 @@
       </a>
       <nav class="app-nav" aria-label="Main">
         <ul>
-          <li><a href="#">Home</a></li>
-          <li><a href="#">Vitals</a></li>
-          <li><a href="#">Tests</a></li>
-          <li><a href="#">Symptoms</a></li>
-          <li><a href="#" aria-current="page">History</a></li>
-          <li><a href="#">Comms</a></li>
+          <li><a href="home.html">Home</a></li>
+          <li><a href="vitals.html">Vitals</a></li>
+          <li><a href="tests.html">Tests</a></li>
+          <li><a href="symptoms.html">Symptoms</a></li>
+          <li><a href="history.html" aria-current="page">History</a></li>
+          <li><a href="comms.html">Comms</a></li>
         </ul>
       </nav>
       <div class="crew-card">
-        <span class="crew-role">Commander</span>
-        <span class="crew-day">Mission day <strong>142</strong></span>
+        <span class="crew-role" id="crew-role">Commander</span>
+        <span class="crew-day">Mission day <strong id="mission-day">142</strong></span>
       </div>
     </aside>
 
     <main id="main" class="main" tabindex="-1">
       <!-- Header -->
       <header class="hero">
-        <p class="eyebrow">Mission archive <span class="sample-tag" title="Entries are examples until the NASA dataset is loaded">Sample data</span></p>
+        <p class="eyebrow">Mission archive <span class="sample-tag" title="Today comes from your saved data; older entries are examples until the NASA dataset is loaded">Older entries are samples</span></p>
         <h1>History &amp; notes</h1>
         <p class="intro">Everything that happened to your health on this mission, in order: alerts, symptoms, tests and messages. Add notes about anything the numbers miss. Notes stay on board unless you choose to share them.</p>
 
         <dl class="mission-strip">
-          <div><dt>Mission day</dt><dd>142</dd></div>
-          <div><dt>Crew</dt><dd>Commander</dd></div>
+          <div><dt>Mission day</dt><dd id="strip-day">142</dd></div>
+          <div><dt>Crew</dt><dd id="strip-crew">Commander</dd></div>
           <div><dt>Earth link</dt><dd><span class="dot dot-off" aria-hidden="true"></span>Offline · next window 14:20</dd></div>
           <div><dt>Storage</dt><dd>Saved on board</dd></div>
         </dl>
@@ -142,7 +142,12 @@
     </main>
   </div>
 
-  <script src="space-bg.js"></script>
-  <script src="history.js"></script>
+  <script src="js/space-bg.js"></script>
+  <script src="js/data.js"></script>
+  <script src="data/crew-labs.js"></script>
+  <script src="js/session.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/labs.js"></script>
+  <script src="js/history.js"></script>
 </body>
 </html>

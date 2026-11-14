@@ -3,90 +3,178 @@
    Shared colours and components live in global.css.
    ========================================================= */
 
-/* Tiles are links: remove default link styling */
-.tiles .tile {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  text-decoration: none;
-  color: inherit;
+.hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.home-stack { display: grid; gap: 20px; margin-top: 20px; }
+
+/* ---------- Buttons not in global.css ---------- */
+.btn-ghost {
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-ghost:hover { border-color: var(--muted); }
+.btn-ghost:disabled { opacity: .55; cursor: default; }
+.btn-sm { min-height: 32px; padding: 0 12px; font-size: 13px; }
+.btn-primary:disabled { opacity: .45; cursor: default; box-shadow: none; }
+
+.btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.btn-row .btn-primary { width: auto; padding: 0 22px; }
+
+.switch-crew { margin-top: 8px; justify-self: start; }
+
+/* ---------- Status pills (home.js sets pill-ok / pill-watch / pill-danger) ---------- */
+.pill {
+  display: inline-flex; align-items: center;
+  font-size: 12.5px; font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+.pill-ok     { color: #c7f3df; background: var(--green-soft); border-color: rgba(95,211,161,.4); }
+.pill-watch  { color: #ffe7b5; background: var(--amber-soft); border-color: rgba(245,185,66,.5); }
+.pill-danger { color: #ffd9d2; background: var(--red-soft);   border-color: rgba(252,61,33,.6); }
+
+/* Data source tags */
+.tag-source {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11.5px; font-weight: 600;
+  vertical-align: middle;
+}
+.tag-nasa { color: #d6e6ff; background: var(--blue-soft); border: 1px solid rgba(138,184,255,.4); }
+.tag-sim  { color: var(--muted); border: 1px dashed var(--faint); }
+
+/* ---------- Overall status line (in the hero) ---------- */
+.status-bar {
+  position: relative;
+  padding: 10px 14px;
+  border: 1px solid rgba(95,211,161,.4);
+  border-radius: var(--radius-sm);
+  background: var(--green-soft);
+  color: #c7f3df;
+  font-weight: 600;
+}
+.status-bar.is-watch  { background: var(--amber-soft); border-color: rgba(245,185,66,.5); color: #ffe7b5; }
+.status-bar.is-danger { background: var(--red-soft);   border-color: rgba(252,61,33,.6); color: #ffd9d2; }
+
+/* ---------- Space weather alert ---------- */
+.alert {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 16px 18px;
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  background: rgba(60, 10, 8, .78);
+  color: #ffd9d2;
+  backdrop-filter: blur(10px);
+}
+.alert[hidden] { display: none; }
+.alert-icon { font-size: 26px; line-height: 1; }
+.alert-body { flex: 1; min-width: 220px; }
+.shelter-status { margin-top: 4px; font-weight: 600; color: var(--text); }
+.alert .btn-ghost { border-color: rgba(252,61,33,.6); }
+
+/* ---------- Body-system tiles ---------- */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+.tile {
+  display: flex; flex-direction: column; gap: 8px;
   min-height: 140px;
+  padding: 16px;
+  background: rgba(10, 18, 42, .74);
+  border: 1px solid var(--line-soft);
+  border-top: 3px solid var(--green);
+  border-radius: var(--radius);
+  backdrop-filter: blur(10px);
+  color: var(--text);
+  text-decoration: none;
 }
-.tile-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-2);
+.tile:hover { border-color: var(--line); background: rgba(18, 31, 69, .8); }
+.tile.is-ok     { border-top-color: var(--green); }
+.tile.is-watch  { border-top-color: var(--amber); }
+.tile.is-danger { border-top-color: var(--red); background: rgba(52, 14, 20, .78); }
+.tile-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.tile-name { font-weight: 650; }
+.tile-reason { color: var(--muted); font-size: 14px; }
+.tile-detail { margin-top: auto; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+
+/* Radiation progress bar */
+.progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  overflow: hidden;
 }
-.tile-reason { margin-top: 0; }
-.tile-detail { font-size: var(--fs-xs); color: var(--text-muted); margin-top: auto; }
-.tiles .progress { margin-top: var(--space-1); }
+.progress > span { display: block; height: 100%; background: var(--green); border-radius: inherit; }
+.progress.is-watch  > span { background: var(--amber); }
+.progress.is-danger > span { background: var(--red); }
 
-/* Sidebar switch button */
-.switch-crew { margin-top: var(--space-2); padding-left: 0; }
+/* ---------- Actions + Due today ---------- */
+.home-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.panel h2 small { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--muted); }
 
-/* Space weather alert layout */
-#space-weather-alert { align-items: center; }
-.alert-icon { font-size: var(--fs-xl); line-height: 1; }
-.alert-body { flex: 1; }
-.shelter-status { margin-top: var(--space-1); font-weight: 600; }
-
-/* Status bar colour follows the overall state (set by home.js) */
-.status-bar.is-watch  { background: var(--watch-soft);  border-color: var(--watch);  color: var(--watch); }
-.status-bar.is-danger { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
-
-/* Suggested actions and Due today lists */
 .action-list,
-.due-list {
-  list-style: none;
-  margin: 0 0 var(--space-4);
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
+.due-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .action-list li,
 .due-list li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  background: var(--surface-muted);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--line);
   border-radius: var(--radius-sm);
-  border-left: 4px solid transparent;
+  background: rgba(4, 6, 13, .35);
 }
-.action-list li.level-watch  { border-left-color: var(--watch); }
-.action-list li.level-danger { border-left-color: var(--danger); background: var(--danger-soft); }
-.action-list li.is-done span { text-decoration: line-through; color: var(--text-muted); }
-.empty-note { color: var(--text-muted); font-size: var(--fs-sm); }
+.due-list small { color: var(--muted); font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+.action-list li.level-watch  { border-left-color: var(--amber); }
+.action-list li.level-danger { border-left-color: var(--red); background: var(--red-soft); }
+.action-list li.is-done span { text-decoration: line-through; color: var(--faint); }
+.action-list li .btn-ghost { flex: none; }
 
-/* Cabin readings outside limits */
-.cabin-watch  { color: var(--watch);  font-weight: 700; }
-.cabin-danger { color: var(--danger); font-weight: 700; }
-
-/* Small button size (move to global.css once another page needs it) */
-.btn-sm { padding: 6px 12px; font-size: var(--fs-xs); }
-
-/* Demo bar */
-.demo-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-5);
-  font-size: var(--fs-sm);
-  color: var(--text-muted);
+/* ---------- Cabin strip ---------- */
+.cabin-strip {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px;
+  padding: 14px 22px;
+  font-family: var(--mono); font-size: 14px;
+  color: var(--muted);
 }
+.cabin-strip b { font-family: var(--font); color: var(--text); }
+.cabin-watch  { color: var(--amber); font-weight: 700; }
+.cabin-danger { color: var(--red);   font-weight: 700; }
 
-/* Emergency dialog */
-.dialog {
-  border: none;
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  max-width: 420px;
-  box-shadow: var(--shadow-lg);
+/* ---------- Demo bar ---------- */
+.demo-bar { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- Emergency dialog ---------- */
+dialog {
+  width: min(460px, 92vw);
+  padding: 24px;
+  border: 1px solid rgba(252,61,33,.6);
+  border-radius: var(--radius);
+  background: var(--navy);
   color: var(--text);
 }
-.dialog::backdrop { background: rgba(18, 38, 58, 0.45); }
-.dialog h2 { color: var(--danger); }
-.dialog-actions { justify-content: flex-end; margin-top: var(--space-4); }
+dialog::backdrop { background: rgba(2, 4, 10, .75); backdrop-filter: blur(2px); }
+dialog h2 { font-size: 22px; color: #ffd9d2; margin-bottom: 12px; }
+dialog p { color: var(--muted); margin: 0; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+
+/* ---------- Smaller screens ---------- */
+@media (max-width: 860px) {
+  .home-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .hero-top { flex-direction: column; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -1,24 +1,20 @@
 /* History & Notes — Crew Health Monitor
-   SAMPLE DATA below: built from the wireframe and Part 1 numbers. Swap EVENTS / SEED_NOTES for the
-   hackathon dataset (record shape: time · crew_id · metric · value · unit · source · quality). */
-(function () {
+   Today's entries come from the shared data the other pages save (liveEvents below):
+   alerts (same scoring as Home), symptom reports, tests done and messages queued for Earth.
+   EVENTS / SEED_NOTES are SAMPLE past entries, built from the wireframe and Part 1 numbers.
+   Load order: data.js → crew-labs.js → session.js → scoring.js → labs.js → history.js */
+(function (CHM) {
   "use strict";
 
-  var MISSION_DAY = 142;
+  var crew = CHM.requireLogin();   // goes to login.html if nobody is checked in
+  if (!crew) return;
+
+  var MISSION_DAY = CHM.MISSION.currentDay;
   var NEXT_WINDOW = "14:20";
-  var STORAGE_KEY = "chm-history-notes-v1";
+  var NOTES_KEY = "notes";         // CHM.store key: [{ crewId, id, day, time, vis, title, body, user }]
 
   // type: alert | symptom | test | message | milestone   tone: act | watch | done | info | milestone
   var EVENTS = [
-    { day: 142, time: "07:12", type: "alert", tone: "watch", title: "Resting heart rate high",
-      detail: "74 bpm against your normal of 58–66, the third morning in a row. Suggested: re-measure after 10 minutes of rest.",
-      badges: [["watch", "Watch"], ["", "Cardio"]] },
-    { day: 142, time: "06:05", type: "alert", tone: "watch", title: "Short sleep",
-      detail: "5 h 40 min against your normal of 6.5–7.5 h. Suggested: protect tonight's sleep window.",
-      badges: [["watch", "Watch"], ["", "Sleep"]] },
-    { day: 141, time: "15:30", type: "symptom", tone: "done", title: "Headache · severity 2 of 5",
-      detail: "About 2 hours. Cabin CO₂ checked first: 2.8 mmHg, within limits. Eased after water and rest.",
-      badges: [["done", "Resolved"]] },
     { day: 140, time: "09:00", type: "test", tone: "done", title: "Weekly tests done",
       detail: "Blood pressure 118/76 · body mass · isolation and wellbeing quiz. All inside your normal.",
       badges: [["done", "3 of 3 done"]] },
@@ -64,22 +60,72 @@
 
   var state = { range: "7", type: "all", query: "", notes: loadNotes() };
 
-  // ---------- storage (optional; page works without it) ----------
+  // ---------- storage (CHM.store falls back to memory if the browser blocks it) ----------
   function loadNotes() {
-    try {
-      var raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        var saved = JSON.parse(raw);
-        if (Array.isArray(saved)) return saved.concat(SEED_NOTES);
-      }
-    } catch (e) { /* storage blocked: fall back to sample notes */ }
-    return SEED_NOTES.slice();
+    var saved = CHM.store.get(NOTES_KEY, []).filter(function (n) { return n.crewId === crew.id; });
+    return saved.concat(SEED_NOTES);
   }
   function saveNotes() {
-    try {
-      var mine = state.notes.filter(function (n) { return n.user; });
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(mine));
-    } catch (e) { /* ignore */ }
+    var others = CHM.store.get(NOTES_KEY, []).filter(function (n) { return n.crewId !== crew.id; });
+    var mine = state.notes.filter(function (n) { return n.user; });
+    CHM.store.set(NOTES_KEY, others.concat(mine));
+  }
+
+  // ---------- live entries from the shared data (other pages write these) ----------
+  var LEVEL = { danger: ["act", "Act now"], watch: ["watch", "Watch"] };
+
+  function hhmm(t) {
+    var d = new Date(t);
+    return isNaN(d) ? null : String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+  function symptomList() {
+    return CHM.store.get("symptoms", []).concat(CHM.SAMPLE_SYMPTOMS);
+  }
+  function isMine(q) {
+    var owner = q.crew !== undefined ? q.crew : q.crewId;
+    return owner === crew.id || owner === undefined;   // null = raised without a PIN
+  }
+
+  function liveEvents() {
+    var out = [];
+    var now = hhmm(Date.now());
+
+    // Today's alerts: the same check as the Home tiles
+    var score = CHM.scoreCrewMember(crew.id, { spaceWeather: CHM.getSpaceWeather(), symptoms: symptomList() });
+    score.systems.forEach(function (s) {
+      if (s.level === "ok") return;
+      out.push({ day: MISSION_DAY, time: now, type: "alert", tone: LEVEL[s.level][0], title: s.name + ": " + s.reason,
+        detail: "Today's check against your normal. Open Vitals to see the readings.",
+        badges: [LEVEL[s.level], ["", s.name]] });
+    });
+
+    // Symptom reports (Symptoms page)
+    symptomList().filter(function (r) { return r.crewId === crew.id; }).forEach(function (r) {
+      var b = r.resolved ? ["done", "Resolved"] : r.level === "act" ? ["act", "Act now"] : ["watch", "Open"];
+      out.push({ day: r.day, time: r.time ? hhmm(r.time) : null, type: "symptom", tone: r.resolved ? "done" : b[0],
+        title: r.symptom + " · severity " + r.severity + " of 5",
+        detail: r.resolved ? "Marked resolved." : "Still open. Mark it resolved on the Symptoms page when it passes.",
+        badges: [b] });
+    });
+
+    // Tests done today (Tests page)
+    var due = CHM.testsDueToday(crew.id);
+    var done = due.filter(function (t) { return t.done; });
+    if (done.length) {
+      out.push({ day: MISSION_DAY, time: null, type: "test", tone: "done", title: "Tests done today",
+        detail: done.map(function (t) { return t.name; }).join(" · "),
+        badges: [["done", done.length + " of " + due.length + " done"]] });
+    }
+
+    // Messages to Earth (Comms queue)
+    CHM.getQueue().filter(isMine).forEach(function (q) {
+      var delivered = q.status === "delivered";
+      out.push({ day: MISSION_DAY, time: hhmm(q.created), type: "message", tone: q.urgent ? "act" : "info",
+        title: "To " + (q.to || "Earth") + ": " + (q.title || "Message"),
+        detail: delivered ? "Delivered to Earth." : q.status === "transit" ? "On its way to Earth." : "Waiting in the Comms queue for the next Earth link.",
+        badges: [q.urgent ? ["act", "Urgent"] : ["info", "To Earth"], delivered ? ["done", "Delivered"] : ["", "Not delivered yet"]] });
+    });
+    return out;
   }
 
   // ---------- helpers ----------
@@ -93,7 +139,10 @@
   function badge(kind, text, ico) {
     return '<span class="badge' + (kind ? " badge-" + kind : "") + '">' + (ico ? icon(ico) : "") + esc(text) + "</span>";
   }
-  function byNewest(a, b) { return b.day - a.day || (b.time < a.time ? -1 : b.time > a.time ? 1 : 0); }
+  function byNewest(a, b) {
+    var at = a.time || "", bt = b.time || "";
+    return b.day - a.day || (bt < at ? -1 : bt > at ? 1 : 0);
+  }
   function inRange(day) {
     if (state.range === "all") return true;
     return day > MISSION_DAY - Number(state.range);
@@ -112,7 +161,7 @@
     var fromNotes = state.notes.map(function (n) {
       return { day: n.day, time: n.time, type: "note", tone: "info", note: n };
     });
-    return EVENTS.concat(fromNotes).sort(byNewest);
+    return EVENTS.concat(liveEvents(), fromNotes).sort(byNewest);
   }
 
   function renderEntry(e) {
@@ -131,7 +180,7 @@
     }
     return '<li class="entry" data-tone="' + e.tone + '"><article class="entry-card">' +
       '<div class="entry-meta">' + icon(e.type) + "<span>" + TYPE_LABEL[e.type] + "</span>" +
-      '<time>Day ' + e.day + " · " + esc(e.time) + "</time></div>" +
+      '<time>Day ' + e.day + (e.time ? " · " + esc(e.time) : "") + "</time></div>" +
       body + '<div class="badges">' + badges + "</div></article></li>";
   }
 
@@ -260,11 +309,14 @@
     var vis = form.querySelector('input[name="vis"]:checked').value;
     var now = new Date();
     var time = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
-    var note = { id: "n-" + now.getTime(), day: MISSION_DAY, time: time, vis: vis, user: true,
+    var note = { id: "n-" + now.getTime(), crewId: crew.id, day: MISSION_DAY, time: time, vis: vis, user: true,
       title: el("note-title").value.trim(), body: body };
 
     state.notes.unshift(note);
     saveNotes();
+    if (vis === "surgeon") {
+      CHM.addToQueue({ crewId: crew.id, type: "note", title: "Note: " + noteTitle(note), to: "Flight surgeon", text: body });
+    }
     renderNotes();
     renderTimeline();
 
@@ -286,6 +338,15 @@
     nav.scrollLeft = current.offsetLeft - (nav.clientWidth - current.offsetWidth) / 2;
   }
 
+  // Crew card and mission strip
+  el("crew-role").textContent = crew.role;
+  el("strip-crew").textContent = crew.role;
+  el("mission-day").textContent = MISSION_DAY;
+  el("strip-day").textContent = MISSION_DAY;
+
+  // Another tab or page changed shared data (symptoms, tests, queue): refresh
+  window.addEventListener("storage", renderTimeline);
+
   renderTimeline();
   renderNotes();
-})();
+})(window.CHM);

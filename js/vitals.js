@@ -222,7 +222,7 @@
     const b = v.baseline;
 
     panel.hidden = false;
-    panel.className = "card mb-4 detail is-" + v.level;
+    panel.className = "panel detail is-" + v.level;
     $("detail-title").textContent = v.def.label + " · " + (state.range === "all" ? "whole mission" : "last " + state.range + " days");
     $("detail-chart").replaceChildren(detailChart(v.key, score.readings, rows, b));
 
@@ -406,7 +406,7 @@
   function rescore() {
     state.score = CHM.scoreCrewMember(crew.id, {
       spaceWeather: CHM.getSpaceWeather(),
-      symptoms: CHM.store.get("symptoms", CHM.SAMPLE_SYMPTOMS),
+      symptoms: CHM.store.get("symptoms", []).concat(CHM.SAMPLE_SYMPTOMS),
     });
   }
   function renderAll() {

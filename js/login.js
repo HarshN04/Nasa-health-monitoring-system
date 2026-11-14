@@ -16,8 +16,8 @@
 (function (CHM) {
   "use strict";
 
-  // Page to open after a good check-in. Change to the Home page when it exists.
-  var NEXT_PAGE = "comms.html";
+  // Page to open after a good check-in.
+  var NEXT_PAGE = "home.html";
 
   var DELAY_AFTER = 5;
   var LOCK_AFTER = 10;
