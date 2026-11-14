@@ -89,7 +89,7 @@ window.CHM = window.CHM || {};
   // ----- Demo/testing: start one crew member's day again -----
   // Undoes everything this crew member did today on every page:
   //   tests done + results (Tests), actions ticked (Home/Vitals), vitals report sent,
-  //   symptom reports (Symptoms), notes (History), shelter check-in,
+  //   symptom reports (Symptoms), notes (History), shelter check-in, Medi-Bot chat,
   //   and their messages in the Comms queue, emergencies included.
   // Kept: the login, other crew members, the space weather event, the activity log.
   CHM.TEST_RESULT_KINDS = ["checkins", "sleep", "bp", "mass", "reaction"];   // saveResult() kinds in tests.js
@@ -106,6 +106,7 @@ window.CHM = window.CHM || {};
     store.set("symptoms", store.get("symptoms", []).filter(notToday));
     store.set("notes", store.get("notes", []).filter(notToday));
     store.set("shelterAcks", CHM.getShelterAcks().filter((id) => id !== crewId));
+    store.remove("chat:" + crewId);   // Medi-Bot conversation (bot.js)
 
     // The mission day never changes, so everything in the queue is from today.
     // Also drops no-PIN emergencies raised about this crew member at check-in.
